@@ -1,0 +1,3 @@
+# exported training data
+liftlog-*.json
+.DS_Store
