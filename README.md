@@ -20,6 +20,12 @@ personal account. Read `CLAUDE.md` before changing anything.
   one tap. If every set hit the top of the rep range last time, the exercise shows an
   "add weight" badge and reps prefill at the bottom of the range. If a set fell under the
   range, it shows a "below range" badge. This is the program's double-progression rule.
+  If every set was rated RIR 3 or 4+ last time, it also shows "add weight" ("every set felt
+  easy") and reps prefill at the bottom of the range.
+- The first lift of each session shows its warm-up under the "last ..." line, worked out from
+  set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
+- In a session the header shows the minutes since the first rated set (today only). It stops
+  at the last rated set once nothing has been rated for 30 minutes.
 - Rating a set starts a rest timer at the bottom of the screen: first heavy compound 3 min,
   other compounds 2 min, isolation 90 s, lateral neck 45 s (from the v3 PDF; per exercise in
   PROGRAM). A1 of a superset goes straight to A2 with no countdown. While it runs it shows the
@@ -27,6 +33,11 @@ personal account. Read `CLAUDE.md` before changing anything.
   table). At zero it turns white and says Go. Skip closes it. Re-rating a set does not restart it.
 - Tapping the "last ..." line under an exercise opens its last 8 sessions.
 - Bodyweight and a notes field per session. Everything autosaves on each tap.
+- Home shows the average bodyweight of the last 7 days and the change on the 7 days before.
+- Deload: home counts the weeks since you started or since the last deload, and says
+  "Deload week due" from week 6. "Start deload week" (two taps) makes the next 7 days a deload:
+  new sessions get about 60% of the sets (3 → 2, 4 → 2, 2 → 1) at the same weights, the header
+  says Deload, and those sessions are left out of the badges and prefill.
 - Delete a session by swiping its history row left and tapping Delete (no confirm, no undo,
   like iOS Mail). Inside a session, "Delete session" at the bottom does the same with two taps.
 - Black-and-white Liquid Glass look, following Apple's guidance: glass only on the floating
@@ -103,6 +114,9 @@ localStorage key `liftlog`:
 ```
 
 - `rir` null means the set was not done. `w`/`r` null means not entered.
+- `start` and `last` (ms timestamps) are the first and latest rated set, for the clock.
+- `deload: true` marks a deload session. Top-level `deload` is the first day of the latest
+  deload week. Import keeps the later of the two.
 - History lookup is by exact exercise name. Renaming an exercise in PROGRAM orphans its
   history unless a migration renames the keys in stored sessions too.
 - A session created from an older program version keeps its own sets; exercises added later
@@ -116,7 +130,7 @@ Open the production URL in Safari, Share, Add to Home Screen. Open it from the i
 ## Not built, deliberately
 
 - Sound or vibration when the rest timer ends (iOS web apps cannot vibrate).
-- Deload tracking (program says every 5–6 weeks, or when stalled two weeks running).
+- Deload due when reps stall two weeks running. Only the 6-week count is built.
 - Editing the program inside the app. Edit the PROGRAM table in `index.html` instead.
 - Per-side exercises (split squat, lateral neck) log one line for both sides.
 - The iOS numeric keypad has no Done key. Tapping a RIR chip dismisses it, which is the

@@ -199,16 +199,54 @@ const done=s=>s.rir!=null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const names=()=>Object.keys(PROGRAM);
 const drop=id=>{db.sessions=db.sessions.filter(s=>s.id!==id);save()};
+const addDays=(d,n)=>new Date(Date.parse(d)+n*864e5).toISOString().slice(0,10);
+const daysBetween=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
+const niceDate=d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 
-function lastOf(name,excludeId){return db.sessions.filter(s=>s.id!==excludeId&&s.ex[name]?.some(done)).sort(byDate)[0]||null}
+// Deload week: db.deload is its first day. For 7 days new sessions get about 60% of the sets at the same weights,
+// and those sessions are left out of badges and prefill.
+const deloadOn=()=>db.deload!=null&&daysBetween(db.deload,today())>=0&&daysBetween(db.deload,today())<7;
+const setsFor=(s,e)=>s.deload?Math.max(1,Math.round(e.sets*.6)):e.sets;
+function deloadInfo(){
+  if(deloadOn())return{on:true,until:addDays(db.deload,6)};
+  const from=db.deload?addDays(db.deload,7):db.sessions.map(s=>s.date).sort()[0];
+  if(!from)return null;
+  const week=Math.max(1,Math.floor(daysBetween(from,today())/7)+1);
+  return{week,due:week>=6,after:db.deload!=null};
+}
+// Average bodyweight of the last 7 days against the 7 days before.
+function bwLine(){
+  const wk=k=>db.sessions.filter(s=>s.bw&&daysBetween(s.date,today())>=k*7&&daysBetween(s.date,today())<k*7+7).map(s=>s.bw);
+  const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,now=wk(0),before=wk(1);
+  if(!now.length)return'';
+  const line=`Bodyweight ${avg(now).toFixed(1)} kg`;
+  if(!before.length)return line;
+  const d=Math.round((avg(now)-avg(before))*10)/10;
+  return line+(d?`, ${d>0?'+':'−'}${Math.abs(d).toFixed(1)} on the week before`:', same as the week before');
+}
+// Ramp-up from the program for the first lift: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
+function warmup(w){
+  if(!(w>20))return'';
+  const steps=[[.5,5],[.7,3],[.85,1]].map(([p,r])=>[Math.round(w*p/2.5)*2.5,r]).filter(([k],i,a)=>k>20&&k<w&&a.findIndex(x=>x[0]===k)===i);
+  return'Warm-up: '+['bar ×10',...steps.map(([k,r])=>`${k} ×${r}`)].join(' · ');
+}
+// Minutes since the first rated set, today only. Stops at the last rated set once nothing has been rated for 30 min.
+function mins(s,now){
+  if(!s.start||s.date!==today())return null;
+  return Math.floor(((now-s.last<18e5?now:s.last)-s.start)/6e4);
+}
+
+function lastOf(name,excludeId){return db.sessions.filter(s=>s.id!==excludeId&&!s.deload&&s.ex[name]?.some(done)).sort(byDate)[0]||null}
 function nextName(){const last=db.sessions.slice().sort(byDate)[0],n=names();return last?n[(n.indexOf(last.name)+1)%n.length]:n[0]}
 
 // Double progression from the program: all sets at the top of the range -> add weight; any set under the range -> too heavy.
+// Every set rated RIR 3 or more -> too light, add weight too ('easy').
 function suggest(ex,sets){
   const d=(sets||[]).filter(s=>done(s)&&s.r!=null);
   if(!d.length)return null;
   if(d.some(s=>s.r<ex.lo))return'down';
   if(d.length>=ex.sets&&d.every(s=>s.r>=ex.hi))return'up';
+  if(d.length>=ex.sets&&d.every(s=>s.rir>=3))return'easy';
   return null;
 }
 // What comes after a set of `name` in session s, and how long to rest before it.
@@ -224,9 +262,10 @@ function afterSet(s,name){
 }
 function newSession(name){
   const s={id:Date.now().toString(36),date:today(),name,bw:null,note:'',ex:{}};
+  if(deloadOn())s.deload=true;
   for(const e of PROGRAM[name]){
     const prev=lastOf(e.name),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
-    s.ex[e.name]=Array.from({length:e.sets},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?p.w:null,r:p?(sug==='up'?e.lo:p.r):null,rir:null}});
+    s.ex[e.name]=Array.from({length:setsFor(s,e)},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?p.w:null,r:p?(sug==='up'||sug==='easy'?e.lo:p.r):null,rir:null}});
   }
   db.sessions.push(s);save();return s;
 }
@@ -249,17 +288,28 @@ function calHTML(y,m){
   <div class="days">${['M','T','W','T','F','S','S'].map(d=>`<i>${d}</i>`).join('')}${cells.join('')}</div></div>`;
 }
 function home(){
-  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();
-  const next=nextName(),all=db.sessions.slice().sort(byDate);
+  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
+  const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwLine(),dl=deloadInfo();
+  const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
+  ${bw||dl?`<div class="card form">${bw?`<div class="fr">${bw}</div>`:''}${dl?`<div class="fr">${dlText}</div>`:''}</div>`:''}
+  ${dl&&!dl.on?'<button class="del" data-deload>Start deload week</button>':''}
   <h2>Calendar</h2>${calHTML(calY,calM)}
   <h2>History</h2>${all.length?`<div class="group">${all.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${esc(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}</div>`:'<p class="note">Nothing logged yet.</p>'}
   <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
   scrollTo(0,0);
 }
+// Header in a session: name, Deload, minutes so far.
+let clock=null;
+function head(){
+  if(!cur)return;
+  const m=mins(cur,Date.now());
+  hdr.textContent=[cur.name,cur.deload?'Deload':'',m!=null?`${m} min`:''].filter(x=>x).join(' · ');
+}
 function session(s){
-  cur=s;hdr.textContent=s.name;back.hidden=false;exp.hidden=true;stopRest();
+  cur=s;back.hidden=false;exp.hidden=true;stopRest();
+  head();clearInterval(clock);clock=setInterval(head,15e3);
   app.innerHTML=`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>`
    +PROGRAM[s.name].map(e=>exCard(s,e)).join('')
    +`<div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
@@ -267,12 +317,14 @@ function session(s){
   scrollTo(0,0);
 }
 function exCard(s,e){
-  const sets=s.ex[e.name]??=Array.from({length:e.sets},()=>({w:null,r:null,rir:null}));
+  const sets=s.ex[e.name]??=Array.from({length:setsFor(s,e)},()=>({w:null,r:null,rir:null}));
   const prev=lastOf(e.name,s.id),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
-  const badge=sug==='up'?' <span class="badge up">↑ hit the top last time, add weight</span>':sug==='down'?' <span class="badge down">↓ below range last time</span>':'';
+  const badge=sug==='up'?' <span class="badge up">↑ hit the top last time, add weight</span>':sug==='easy'?' <span class="badge up">↑ every set felt easy, add weight</span>':sug==='down'?' <span class="badge down">↓ below range last time</span>':'';
+  const wu=e===PROGRAM[s.name][0]?warmup(sets[0]?.w):null;
   return`<div class="card ex" data-ex="${esc(e.name)}">
-  <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${e.sets} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
+  <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${setsFor(s,e)} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
   <div class="last" data-hist>${prev?`last ${prev.date}: ${fmt(ps)}`:'no history yet'}${badge}</div><div class="hist" hidden></div>
+  ${wu==null?'':`<div class="last wu"${wu?'':' hidden'}>${wu}</div>`}
   ${sets.map((st,i)=>setRow(st,i)).join('')}</div>`;
 }
 function setRow(st,i){
@@ -315,6 +367,10 @@ app.addEventListener('click',ev=>{
   if(b.id==='imp')return importFile.click();
   if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
   if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
+  if('deload'in b.dataset){
+    if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again to start the deload week';return}
+    db.deload=today();save();return home();
+  }
   if(!cur)return;
   if('finish'in b.dataset)return home();
   if('del'in b.dataset){
@@ -325,12 +381,14 @@ app.addEventListener('click',ev=>{
   const st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];
   if(b.dataset.step){
     const[k,d]=b.dataset.step.split(':'),v=Math.max(0,Math.round(((st[k]??0)+ +d)*100)/100);
-    st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();return;
+    st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();return updWarmup(row,st);
   }
   if(b.dataset.rir!==undefined){
     const v=+b.dataset.rir,was=st.rir;st.rir=st.rir===v?null:v;
     row.querySelectorAll('[data-rir]').forEach(x=>x.classList.toggle('on',+x.dataset.rir===st.rir));
-    row.classList.toggle('done',st.rir!=null);save();
+    row.classList.toggle('done',st.rir!=null);
+    if(st.rir!=null){cur.start??=Date.now();cur.last=Date.now();head()}
+    save();
     if(was==null&&st.rir!=null)startRest(cur,row.closest('.ex').dataset.ex);
   }
 });
@@ -338,8 +396,14 @@ app.addEventListener('input',ev=>{
   const el=ev.target;if(!cur)return;
   const num=v=>v===''?null:+v;
   if(el.dataset.f){cur[el.dataset.f]=el.type==='number'?num(el.value):el.value;save();return}
-  if(el.dataset.k){const row=el.closest('.set');cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i][el.dataset.k]=num(el.value);save()}
+  if(el.dataset.k){const row=el.closest('.set'),st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];st[el.dataset.k]=num(el.value);save();updWarmup(row,st)}
 });
+// The warm-up line follows set 1's weight.
+function updWarmup(row,st){
+  const box=row.closest('.ex').querySelector('.wu');
+  if(!box||row.dataset.i!=='0')return;
+  box.textContent=warmup(st.w);box.hidden=!box.textContent;
+}
 back.onclick=home;
 document.getElementById('skip').onclick=stopRest;
 exp.onclick=async()=>{
@@ -351,6 +415,7 @@ importFile.onchange=async()=>{
   const f=importFile.files[0];importFile.value='';if(!f)return;
   try{const d=JSON.parse(await f.text()),have=new Set(db.sessions.map(s=>s.id));
     for(const s of d.sessions||[])if(!have.has(s.id))db.sessions.push(s);
+    if(d.deload&&!(db.deload>=d.deload))db.deload=d.deload;
     save();home();hdr.textContent='Imported';}catch{hdr.textContent='Import failed'}
 };
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -364,8 +429,35 @@ function runTests(){
   t('no up with fewer sets than prescribed',suggest(e,[S(8),S(8)])===null);
   t('down when a set is under the range',suggest(e,[S(8),S(6),S(4)])==='down');
   t('null when nothing was rated',suggest(e,[{w:60,r:8,rir:null}])===null);
+  t('easy when every set was RIR 3 or more',suggest(e,[S(6,3),S(6,3),S(7,4)])==='easy');
+  t('not easy when one set was RIR 2',suggest(e,[S(6,3),S(6,2),S(7,4)])===null);
+  t('below range wins over easy',suggest(e,[S(6,3),S(4,4),S(6,3)])==='down');
+  t('warm-up from 60 kg',warmup(60)==='Warm-up: bar ×10 · 30 ×5 · 42.5 ×3 · 50 ×1');
+  t('warm-up skips steps at bar weight',warmup(30)==='Warm-up: bar ×10 · 25 ×1');
+  t('no warm-up without a weight',warmup(null)===''&&warmup(20)==='');
+  const T=Date.now();
+  t('clock counts from the first set',mins({date:today(),start:T-23*6e4,last:T-6e4},T)===23);
+  t('clock stops 30 min after the last set',mins({date:today(),start:T-3*36e5,last:T-2*36e5},T)===60);
+  t('no clock on an earlier day',mins({date:'2026-01-01',start:T,last:T},T)===null);
   noSave=true;const real=db;
-  db={sessions:[{id:'a',date:'2026-01-01',name:'Upper A',bw:80,note:'',ex:{'Barbell Bench Press':[S(8),S(8),S(8)],'Incline DB Press':[S(10,2,24),S(9,1,24),S(8,0,24)]}}]};
+  const D=n=>addDays(today(),-n);
+  db={sessions:[{date:D(0),bw:80},{date:D(2),bw:81},{date:D(8),bw:80.2}]};
+  t('bodyweight: 7-day average against the week before',bwLine()==='Bodyweight 80.5 kg, +0.3 on the week before');
+  db={sessions:[{date:D(8),bw:80.2}]};
+  t('bodyweight: nothing without a weigh-in this week',bwLine()==='');
+  db={sessions:[{date:D(34)}]};
+  t('deload: week 5 is not due',deloadInfo().week===5&&!deloadInfo().due);
+  db={sessions:[{date:D(35)}]};
+  t('deload: due in week 6',deloadInfo().due);
+  db={sessions:[{date:D(60)}],deload:D(10)};
+  t('deload: weeks count from the end of the last one',deloadInfo().week===1&&deloadInfo().after&&!deloadInfo().on);
+  db={sessions:[{id:'a',date:D(3),name:'Upper A',ex:{'Barbell Bench Press':[S(8),S(8),S(8)]}}],deload:D(2)};
+  t('deload: on for 7 days',deloadInfo().on&&deloadInfo().until===addDays(D(2),6));
+  const dA=newSession('Upper A'),dL=newSession('Lower A');
+  t('deload: 3 sets become 2, 4 become 2, 2 become 1',dA.deload&&dA.ex['Barbell Bench Press'].length===2&&dA.ex['Incline DB Press'].length===2&&dL.ex['Lateral Neck Flexion (per side)'].length===1);
+  dA.ex['Barbell Bench Press'].forEach(x=>{x.rir=1;x.r=5});
+  t('deload sessions do not feed badges or prefill',lastOf('Barbell Bench Press').id==='a');
+  db={sessions:[{id:'a',date:'2026-01-01',name:'Upper A',bw:80,note:'',ex:{'Barbell Bench Press':[S(8),S(8),S(8)],'Incline DB Press':[S(10,2,24),S(9,1,24),S(8,0,24)],'Overhead Press':[S(7,3,40),S(7,3,40),S(8,4,40)]}}]};
   const s=newSession(nextName());
   t('next session after Upper A is Lower A',s.name==='Lower A');
   const u=newSession('Upper A');
@@ -374,6 +466,7 @@ function runTests(){
   t('prefill reps as last time otherwise',u.ex['Incline DB Press'].slice(0,3).map(x=>x.r).join()==='10,9,8');
   t('extra set copies the last logged set',u.ex['Incline DB Press'][3].r===8);
   t('rir blank on prefill',u.ex['Barbell Bench Press'].every(x=>x.rir===null));
+  t('prefill reps at the bottom after easy',newSession('Upper B').ex['Overhead Press'].every(x=>x.w===40&&x.r===6));
   session(u);
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');

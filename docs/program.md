@@ -16,10 +16,12 @@ Days can shift. Keep at least one rest day between the two upper sessions.
   every week.
 - **Volume.** 10–20 hard sets per muscle per week. More is fatigue, not growth.
 - **Progression.** Double progression: add reps inside the range. When every set hits the top
-  of the range, add weight next time and restart at the bottom. The app's badges implement
-  exactly this rule; it never changes the weight for you.
+  of the range, add weight next time and restart at the bottom. Also add weight when every set
+  was RIR 3 or easier: the weight is too light to count as a hard set. The app's badges
+  implement exactly these rules; it never changes the weight for you.
 - **Deload.** Every 5–6 weeks cut volume about 40% for one week, or sooner when reps stall two
   weeks running or joints complain. In the first blocks a fixed schedule is premature.
+  In the app, a deload week keeps the weights and cuts sets to about 60% (3 → 2, 4 → 2, 2 → 1).
 - **Rest.** Compounds 2–3 min, isolation 60–90 s. Cutting rest on compounds cuts reps, which
   cuts total tension. Whole session under 60 min.
 - **Warm-up.** 3–5 min general. Ramp-up only on the first compound: empty bar ×10, 50% ×5,
