@@ -83,6 +83,18 @@ textarea{display:block;width:100%;min-height:72px;border:0;background:none;resiz
 .note{color:var(--mut);font-size:13px;text-align:center;margin:28px 8px}
 .link{background:none;border:0;color:var(--fg);padding:0;font-size:inherit;text-decoration:underline}
 #t{font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--mut);background:var(--card);padding:12px 14px;border-radius:18px;white-space:pre-wrap;margin:0 0 12px}
+.cal{padding:10px 10px 12px}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.mh b{font-weight:600}
+.mh button{width:44px;height:44px;border:0;background:none;font-size:28px;line-height:1}
+.days{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px;text-align:center}
+.days i{font-style:normal;font-size:12px;font-weight:600;color:var(--dim);padding-bottom:4px}
+.day{display:flex;flex-direction:column;align-items:center;height:52px;padding:0;border:0;background:none;font-variant-numeric:tabular-nums}
+.day b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;font-size:16px;font-weight:400;color:var(--mut)}
+.day small{font-size:11px;font-weight:600;color:var(--mut);margin-top:2px}
+.day.on b{background:#fff;color:#000;font-weight:600}
+.day.now b{box-shadow:inset 0 0 0 1.5px #fff;color:var(--fg)}
+.day.on.now b{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff;color:#000}
 /* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). Turns white when it is time to lift. */
 #rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000}
 body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
@@ -224,11 +236,24 @@ function fmt(sets){
   return sets.map(x=>`${x.w??'–'}×${x.r??'–'}@${x.rir}`).join(' ');
 }
 
+// Month calendar, Monday first. A trained day opens its session; the letters are the session (Upper A = UA).
+let calY=new Date().getFullYear(),calM=new Date().getMonth();
+function calHTML(y,m){
+  const pad=n=>String(n).padStart(2,'0'),lead=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+  const cells=Array.from({length:lead},()=>'<span></span>');
+  for(let d=1;d<=days;d++){
+    const date=`${y}-${pad(m+1)}-${pad(d)}`,s=db.sessions.filter(x=>x.date===date).sort(byDate)[0],cls=date===today()?' now':'';
+    cells.push(s?`<button class="day on${cls}" data-open="${s.id}"><b>${d}</b><small>${esc(s.name.split(' ').map(w=>w[0]).join(''))}</small></button>`:`<span class="day${cls}"><b>${d}</b></span>`);
+  }
+  return`<div class="card cal"><div class="mh"><button data-cal="-1" aria-label="Previous month">‹</button><b>${new Date(y,m,1).toLocaleDateString('en',{month:'long',year:'numeric'})}</b><button data-cal="1" aria-label="Next month">›</button></div>
+  <div class="days">${['M','T','W','T','F','S','S'].map(d=>`<i>${d}</i>`).join('')}${cells.join('')}</div></div>`;
+}
 function home(){
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();
   const next=nextName(),all=db.sessions.slice().sort(byDate);
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
+  <h2>Calendar</h2>${calHTML(calY,calM)}
   <h2>History</h2>${all.length?`<div class="group">${all.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${esc(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}</div>`:'<p class="note">Nothing logged yet.</p>'}
   <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
   scrollTo(0,0);
@@ -288,6 +313,7 @@ app.addEventListener('click',ev=>{
   if(b.dataset.start)return session(newSession(b.dataset.start));
   if(b.dataset.open)return session(db.sessions.find(s=>s.id===b.dataset.open));
   if(b.id==='imp')return importFile.click();
+  if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
   if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
   if(!cur)return;
   if('finish'in b.dataset)return home();
@@ -351,6 +377,11 @@ function runTests(){
   session(u);
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
+  db={sessions:[{id:'x',date:'2026-10-05',name:'Upper B'}]};
+  const cal=document.createElement('div');cal.innerHTML=calHTML(2026,9);
+  t('calendar: October 2026 starts on a Thursday',cal.querySelectorAll('.days>span:not(.day)').length===3);
+  t('calendar: 31 days in October',cal.querySelectorAll('.day').length===31);
+  t('calendar: trained day opens its session',cal.querySelector('[data-open="x"]')?.textContent==='5UB');
   const all=Object.values(PROGRAM).flat();
   t('every exercise has a rest time and tips',all.every(e=>e.rest>0&&TIPS[e.name]?.length));
   const blank=name=>({name,ex:Object.fromEntries(PROGRAM[name].map(e=>[e.name,Array.from({length:e.sets},()=>({w:null,r:null,rir:null}))]))});

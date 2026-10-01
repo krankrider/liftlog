@@ -10,14 +10,16 @@ personal account. Read `CLAUDE.md` before changing anything.
 ## What it does
 
 - Home shows "Start <next session>" based on the last logged session (Upper A → Lower A →
-  Upper B → Lower B), the other three sessions, and the history list.
+  Upper B → Lower B), the other three sessions, a month calendar, and the history list.
+- The calendar starts on Monday. A trained day is a white circle with the session's letters
+  under it (UA = Upper A); tapping it opens that session. Today has a ring. ‹ › change month.
 - A session is the program's exercise list with one row per set: weight stepper (±2.5 kg),
   reps stepper (±1), both open the numeric keypad when tapped, and a row of RIR chips 0–4+.
   Tapping a chip marks the set done. An unrated set is not counted anywhere.
 - Weight and reps are prefilled from the last time that exercise was done, so a repeat set is
-  one tap. If every set hit the top of the rep range last time, the exercise shows a green
+  one tap. If every set hit the top of the rep range last time, the exercise shows an
   "add weight" badge and reps prefill at the bottom of the range. If a set fell under the
-  range, it shows a red "below range" badge. This is the program's double-progression rule.
+  range, it shows a "below range" badge. This is the program's double-progression rule.
 - Rating a set starts a rest timer at the bottom of the screen: first heavy compound 3 min,
   other compounds 2 min, isolation 90 s, lateral neck 45 s (from the v3 PDF; per exercise in
   PROGRAM). A1 of a superset goes straight to A2 with no countdown. While it runs it shows the
