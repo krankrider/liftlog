@@ -35,54 +35,56 @@ Days can shift. Keep at least one rest day between the two upper sessions.
 ## Sessions
 
 RIR column is the target. Sets × reps as prescribed; add weight when all sets hit the top.
+Rest is what the app's timer counts after each set. "—" means go straight to the paired
+exercise; the pair rests after its second half.
 
 ### Upper A (~46 min)
 
-| Exercise | Sets × reps | RIR | Note |
-|---|---|---|---|
-| Barbell Bench Press | 3 × 5–8 | 1–2 | ramp-up here |
-| Incline DB Press | 4 × 8–12 | 1–2 | A1 |
-| Weighted Pull-up / Lat Pulldown | 4 × 8–10 | 1–2 | A2, paired with incline, 2 min between rounds |
-| Lateral Raise (DB) | 4 × 15–20 | 0–1 | |
-| Face Pull | 3 × 15–20 | 1–2 | |
-| Incline DB Curl | 3 × 10–15 | 0–1 | B1 |
-| Overhead Cable Triceps Ext. | 3 × 10–15 | 0–1 | B2 |
+| Exercise | Sets × reps | RIR | Rest | Note |
+|---|---|---|---|---|
+| Barbell Bench Press | 3 × 5–8 | 1–2 | 3 min | ramp-up here |
+| Incline DB Press | 4 × 8–12 | 1–2 | — | A1 |
+| Weighted Pull-up / Lat Pulldown | 4 × 8–10 | 1–2 | 2 min | A2, paired with incline |
+| Lateral Raise (DB) | 4 × 15–20 | 0–1 | 90 s | |
+| Face Pull | 3 × 15–20 | 1–2 | 90 s | |
+| Incline DB Curl | 3 × 10–15 | 0–1 | — | B1 |
+| Overhead Cable Triceps Ext. | 3 × 10–15 | 0–1 | 90 s | B2 |
 
 ### Lower A (~45 min)
 
-| Exercise | Sets × reps | RIR | Note |
-|---|---|---|---|
-| Back Squat | 3 × 5–8 | 1–2 | ramp-up here |
-| Romanian Deadlift | 3 × 8–10 | 1–2 | |
-| Leg Press / Walking Lunge | 3 × 10–12 | 1–2 | |
-| Calf Raise | 3 × 12–15 | 0–1 | A1 |
-| Neck Curl (flexion) | 3 × 15–20 | 2 | A2 |
-| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | alternate sides, 45 s rest |
+| Exercise | Sets × reps | RIR | Rest | Note |
+|---|---|---|---|---|
+| Back Squat | 3 × 5–8 | 1–2 | 3 min | ramp-up here |
+| Romanian Deadlift | 3 × 8–10 | 1–2 | 2 min | |
+| Leg Press / Walking Lunge | 3 × 10–12 | 1–2 | 2 min | |
+| Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
+| Neck Curl (flexion) | 3 × 15–20 | 2 | 90 s | A2 |
+| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | 45 s | alternate sides |
 
 ### Upper B (~51 min)
 
-| Exercise | Sets × reps | RIR | Note |
-|---|---|---|---|
-| Overhead Press | 3 × 6–10 | 1–2 | ramp-up here |
-| Barbell Shrug | 4 × 10–15 | 0–1 | traps priority, second while fresh |
-| Weighted Dip / Incline Press | 3 × 8–12 | 1–2 | A1; incline if upper chest is the look wanted |
-| Barbell Row | 3 × 8–12 | 1–2 | A2 |
-| Lat Pulldown | 3 × 12–15 | 1–2 | new in v4 |
-| Cable Lateral Raise | 4 × 15–20 | 0–1 | |
-| EZ-Bar Curl | 3 × 8–12 | 1–2 | B1 |
-| Triceps Pushdown | 3 × 10–15 | 0–1 | B2 |
+| Exercise | Sets × reps | RIR | Rest | Note |
+|---|---|---|---|---|
+| Overhead Press | 3 × 6–10 | 1–2 | 3 min | ramp-up here |
+| Barbell Shrug | 4 × 10–15 | 0–1 | 2 min | traps priority, second while fresh |
+| Weighted Dip / Incline Press | 3 × 8–12 | 1–2 | — | A1; incline if upper chest is the look wanted |
+| Barbell Row | 3 × 8–12 | 1–2 | 2 min | A2 |
+| Lat Pulldown | 3 × 12–15 | 1–2 | 2 min | new in v4 |
+| Cable Lateral Raise | 4 × 15–20 | 0–1 | 90 s | |
+| EZ-Bar Curl | 3 × 8–12 | 1–2 | — | B1 |
+| Triceps Pushdown | 3 × 10–15 | 0–1 | 90 s | B2 |
 
 ### Lower B (~46 min)
 
-| Exercise | Sets × reps | RIR | Note |
-|---|---|---|---|
-| Trap Bar Deadlift | 3 × 5–8 | 1–2 | ramp-up here |
-| Trap Bar Shrug | 3 × 10–15 | 0–1 | same bar, strip a plate if needed |
-| Bulgarian Split Squat (per leg) | 3 × 8–12 | 1–2 | |
-| Leg Curl | 3 × 10–12 | 1–2 | |
-| Calf Raise | 3 × 12–15 | 0–1 | A1 |
-| Neck Extension | 3 × 15–20 | 2 | A2 |
-| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | |
+| Exercise | Sets × reps | RIR | Rest | Note |
+|---|---|---|---|---|
+| Trap Bar Deadlift | 3 × 5–8 | 1–2 | 3 min | ramp-up here |
+| Trap Bar Shrug | 3 × 10–15 | 0–1 | 2 min | same bar, strip a plate if needed |
+| Bulgarian Split Squat (per leg) | 3 × 8–12 | 1–2 | 2 min | |
+| Leg Curl | 3 × 10–12 | 1–2 | 90 s | |
+| Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
+| Neck Extension | 3 × 15–20 | 2 | 90 s | A2 |
+| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | 45 s | |
 
 ## Weekly direct sets, v3 → v4
 

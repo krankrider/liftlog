@@ -2,12 +2,12 @@
 
     python3 tools/make_icons.py   (run from the repo root)
 
-White barbell on the app's blue (#1f4e79). iOS rounds the corners itself.
+White barbell on black, matching the app. iOS rounds the corners itself.
 """
 import struct
 import zlib
 
-BLUE, WHITE = (0x1F, 0x4E, 0x79), (255, 255, 255)
+BLACK, WHITE = (0, 0, 0), (255, 255, 255)
 
 
 def png(n, rows):
@@ -32,7 +32,7 @@ def barbell(cx, cy):
 
 
 for n in (180, 512):
-    rows = [[WHITE if barbell((x + .5) / n, (y + .5) / n) else BLUE for x in range(n)] for y in range(n)]
+    rows = [[WHITE if barbell((x + .5) / n, (y + .5) / n) else BLACK for x in range(n)] for y in range(n)]
     with open(f"icon-{n}.png", "wb") as f:
         f.write(png(n, rows))
     print(f"icon-{n}.png")

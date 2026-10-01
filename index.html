@@ -13,17 +13,17 @@
 <title>Lift log</title>
 <style>
 /* Liquid Glass per Apple's HIG: glass only on the floating controls (header buttons, primary actions);
-   content sits on plain cards. Dark only, like Apple Fitness, so the white status bar text always reads. */
-:root{color-scheme:dark;--fg:#fff;--mut:rgba(235,235,245,.6);--dim:rgba(235,235,245,.3);--fill:rgba(120,120,128,.32);--fill2:rgba(118,118,128,.2);--card:rgba(28,28,30,.72);--line:rgba(84,84,88,.6);--acc:#0a84ff;--ok:#30d158;--warn:#ff453a}
+   content sits on plain cards. Black and white only, so the white status bar text always reads. */
+:root{color-scheme:dark;--fg:#fff;--mut:rgba(255,255,255,.6);--dim:rgba(255,255,255,.3);--fill:rgba(255,255,255,.2);--fill2:rgba(255,255,255,.1);--card:rgba(24,24,24,.75);--line:rgba(255,255,255,.16)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html{background:#000}
 body{margin:0;font:17px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
-body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 10% 0%,rgba(10,132,255,.38),transparent 70%),radial-gradient(55% 40% at 100% 30%,rgba(94,92,230,.3),transparent 70%),radial-gradient(70% 45% at 30% 100%,rgba(100,210,255,.16),transparent 70%)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 10% 0%,rgba(255,255,255,.13),transparent 70%),radial-gradient(55% 40% at 100% 30%,rgba(255,255,255,.07),transparent 70%),radial-gradient(70% 45% at 30% 100%,rgba(255,255,255,.05),transparent 70%)}
 button,input,textarea{font:inherit;color:inherit;touch-action:manipulation}
 button{cursor:pointer;transition:transform .2s,background-color .2s}
 .glass{border-radius:999px;border:.5px solid rgba(255,255,255,.22);font-weight:600;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 1px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.35)}
-.tint,.rir .on{border:0;border-radius:999px;font-weight:600;color:#fff;background:linear-gradient(#3d9bff,#0a6ff0);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 5px rgba(0,0,0,.15),0 6px 20px rgba(10,132,255,.35)}
+.tint,.rir .on{border:0;border-radius:999px;font-weight:600;color:#000;background:linear-gradient(#fff,#d6d6d6);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(0,0,0,.15),0 6px 20px rgba(255,255,255,.12)}
 .glass:active,.tint:active,.grid button:active{transform:scale(.95)}
 header{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:calc(env(safe-area-inset-top) + 6px) 16px 16px;background:linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.35) 65%,transparent)}
 header::before{content:"";position:absolute;inset:0;z-index:-1;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
@@ -50,13 +50,13 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 .open b{font-weight:600}
 .open small{color:var(--mut);font-size:14px;font-variant-numeric:tabular-nums}
 .chev{color:var(--dim);font-size:26px;line-height:1}
-.rm{flex:none;scroll-snap-align:end;width:96px;border:0;background:var(--warn);color:#fff;font-weight:600}
+.rm{flex:none;scroll-snap-align:end;width:96px;border:0;background:#fff;color:#000;font-weight:600}
 .ex h3{margin:0;font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .rx{color:var(--mut);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(10,132,255,.2);color:#6cb4ff;vertical-align:2px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--fill);color:#fff;vertical-align:2px}
 .last{color:var(--mut);font-size:14px;margin:4px 0 10px;font-variant-numeric:tabular-nums}
 .badge{display:table;margin-top:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px}
-.up{color:var(--ok);background:rgba(48,209,88,.15)}.down{color:var(--warn);background:rgba(255,69,58,.15)}
+.up{color:#000;background:#fff}.down{color:#fff;box-shadow:inset 0 0 0 1px var(--mut)}
 .hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
 .set{display:grid;grid-template-columns:28px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
 .set:last-child{padding-bottom:2px}
@@ -65,7 +65,7 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 .lbl{grid-area:l;color:var(--mut);font-size:11px;font-weight:600;text-align:center}
 .w{grid-area:w}.r{grid-area:r}
 .num{display:flex;align-items:center;height:44px;border-radius:22px;background:var(--fill2);overflow:hidden}
-.num button{width:44px;height:44px;border:0;background:none;color:var(--acc);font-size:24px;flex:none}
+.num button{width:44px;height:44px;border:0;background:none;color:var(--fg);font-size:24px;flex:none}
 .num button:active{background:var(--fill)}
 .num input{width:100%;min-width:0;height:44px;text-align:center;border:0;background:none;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;padding:0;outline:none;-moz-appearance:textfield}
 .num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{display:none}
@@ -79,59 +79,108 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 textarea{display:block;width:100%;min-height:72px;border:0;background:none;resize:vertical;font-size:17px;outline:none;padding:0}
 ::placeholder{color:var(--dim);font-weight:400}
 .foot{margin-top:24px}
-.del{display:block;width:100%;height:50px;margin-top:14px;border-radius:25px;color:var(--warn);font-weight:600}
+.del{display:block;width:100%;height:50px;margin-top:14px;border-radius:25px;font-weight:600}
 .note{color:var(--mut);font-size:13px;text-align:center;margin:28px 8px}
-.link{background:none;border:0;color:var(--acc);padding:0;font-size:inherit}
+.link{background:none;border:0;color:var(--fg);padding:0;font-size:inherit;text-decoration:underline}
 #t{font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--mut);background:var(--card);padding:12px 14px;border-radius:18px;white-space:pre-wrap;margin:0 0 12px}
-@media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#1c1c1e;--mut:rgba(235,235,245,.8)}.glass{background:#2c2c2e;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
+/* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). Turns white when it is time to lift. */
+#rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000}
+body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
+.rt{display:flex;align-items:center;justify-content:space-between}
+#restClock{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+#skip{height:44px;padding:0 18px}
+.bar{height:3px;margin:12px 0 10px;border-radius:2px;background:var(--fill2);overflow:hidden}
+.bar i{display:block;height:100%;background:#fff;transition:width .25s linear}
+#restNx{margin:0 0 4px;font-weight:600}
+#restNx small{color:var(--mut);font-size:14px;font-weight:400;white-space:nowrap}
+#restTips{margin:0;padding:0;list-style:none;color:var(--mut);font-size:15px}
+#rest.go{background:#fff;color:#000}
+#rest.go .bar{visibility:hidden}
+#rest.go #restNx small,#rest.go #restTips{color:rgba(0,0,0,.6)}
+#rest.go #skip{background:#000;color:#fff;box-shadow:none}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#181818;--mut:rgba(255,255,255,.8)}.glass{background:#2a2a2a;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
 </style>
 </head>
 <body>
 <header><button id="homeBtn" class="glass" aria-label="Back" hidden><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="hdr"></span><button id="export" class="glass">Export</button></header>
 <main id="app"></main>
+<section id="rest" hidden><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
-// Program v4 (sets, rep range, target RIR, superset tag). Edit here when the program changes.
-function X(name,sets,lo,hi,rir,ss){return{name,sets,lo,hi,rir,ss}}
+// Program v4 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
+// Rest per the v3 PDF: first heavy compound 3 min, other compounds 2 min, isolation 90 s.
+// A superset pair rests only after its second exercise; A1 goes straight into A2.
+function X(name,sets,lo,hi,rir,rest,ss){return{name,sets,lo,hi,rir,rest,ss}}
 const PROGRAM={
 "Upper A":[
- X("Barbell Bench Press",3,5,8,"1-2"),
- X("Incline DB Press",4,8,12,"1-2","A1"),
- X("Weighted Pull-up / Lat Pulldown",4,8,10,"1-2","A2"),
- X("Lateral Raise (DB)",4,15,20,"0-1"),
- X("Face Pull",3,15,20,"1-2"),
- X("Incline DB Curl",3,10,15,"0-1","B1"),
- X("Overhead Cable Triceps Ext.",3,10,15,"0-1","B2")],
+ X("Barbell Bench Press",3,5,8,"1-2",180),
+ X("Incline DB Press",4,8,12,"1-2",120,"A1"),
+ X("Weighted Pull-up / Lat Pulldown",4,8,10,"1-2",120,"A2"),
+ X("Lateral Raise (DB)",4,15,20,"0-1",90),
+ X("Face Pull",3,15,20,"1-2",90),
+ X("Incline DB Curl",3,10,15,"0-1",90,"B1"),
+ X("Overhead Cable Triceps Ext.",3,10,15,"0-1",90,"B2")],
 "Lower A":[
- X("Back Squat",3,5,8,"1-2"),
- X("Romanian Deadlift",3,8,10,"1-2"),
- X("Leg Press / Walking Lunge",3,10,12,"1-2"),
- X("Calf Raise",3,12,15,"0-1","A1"),
- X("Neck Curl (flexion)",3,15,20,"2","A2"),
- X("Lateral Neck Flexion (per side)",2,15,20,"2")],
+ X("Back Squat",3,5,8,"1-2",180),
+ X("Romanian Deadlift",3,8,10,"1-2",120),
+ X("Leg Press / Walking Lunge",3,10,12,"1-2",120),
+ X("Calf Raise",3,12,15,"0-1",90,"A1"),
+ X("Neck Curl (flexion)",3,15,20,"2",90,"A2"),
+ X("Lateral Neck Flexion (per side)",2,15,20,"2",45)],
 "Upper B":[
- X("Overhead Press",3,6,10,"1-2"),
- X("Barbell Shrug",4,10,15,"0-1"),
- X("Weighted Dip / Incline Press",3,8,12,"1-2","A1"),
- X("Barbell Row",3,8,12,"1-2","A2"),
- X("Lat Pulldown",3,12,15,"1-2"),
- X("Cable Lateral Raise",4,15,20,"0-1"),
- X("EZ-Bar Curl",3,8,12,"1-2","B1"),
- X("Triceps Pushdown",3,10,15,"0-1","B2")],
+ X("Overhead Press",3,6,10,"1-2",180),
+ X("Barbell Shrug",4,10,15,"0-1",120),
+ X("Weighted Dip / Incline Press",3,8,12,"1-2",120,"A1"),
+ X("Barbell Row",3,8,12,"1-2",120,"A2"),
+ X("Lat Pulldown",3,12,15,"1-2",120),
+ X("Cable Lateral Raise",4,15,20,"0-1",90),
+ X("EZ-Bar Curl",3,8,12,"1-2",90,"B1"),
+ X("Triceps Pushdown",3,10,15,"0-1",90,"B2")],
 "Lower B":[
- X("Trap Bar Deadlift",3,5,8,"1-2"),
- X("Trap Bar Shrug",3,10,15,"0-1"),
- X("Bulgarian Split Squat (per leg)",3,8,12,"1-2"),
- X("Leg Curl",3,10,12,"1-2"),
- X("Calf Raise",3,12,15,"0-1","A1"),
- X("Neck Extension",3,15,20,"2","A2"),
- X("Lateral Neck Flexion (per side)",2,15,20,"2")]};
+ X("Trap Bar Deadlift",3,5,8,"1-2",180),
+ X("Trap Bar Shrug",3,10,15,"0-1",120),
+ X("Bulgarian Split Squat (per leg)",3,8,12,"1-2",120),
+ X("Leg Curl",3,10,12,"1-2",90),
+ X("Calf Raise",3,12,15,"0-1",90,"A1"),
+ X("Neck Extension",3,15,20,"2",90,"A2"),
+ X("Lateral Neck Flexion (per side)",2,15,20,"2",45)]};
+
+// Cues shown during rest, one idea per line. From the v3 PDF's exercise guide; Lat Pulldown and the
+// trap-bar lifts are v4 additions with no PDF entry.
+const TIPS={
+"Barbell Bench Press":["Feet planted, slight arch.","Shoulder blades pinched.","Lower over the chest in 2–3 s, press up."],
+"Incline DB Press":["Bench at 30–45°.","Press the dumbbells from shoulder level.","Aim for the upper chest."],
+"Weighted Pull-up / Lat Pulldown":["Hang from the bar, pull your chin over it.","Add a belt with weight when bodyweight gets easy.","Or use the pulldown machine."],
+"Lateral Raise (DB)":["Raise your arms out to shoulder height.","Slight bend in the elbows.","Light weight, control the way down."],
+"Face Pull":["Rope at face height.","Pull towards your face, elbows high.","Squeeze the rear delts."],
+"Incline DB Curl":["Sit back on a 45–60° bench, arms hanging behind you.","Curl up without moving the elbows.","The stretch at the bottom is the point."],
+"Overhead Cable Triceps Ext.":["Rope on a low cable, face away.","Elbows by your ears.","Lower behind the head, extend up."],
+"Back Squat":["Bar on the upper back.","Down until thighs are at least parallel.","Knees track over toes, drive up."],
+"Romanian Deadlift":["Bar at the hips, flat back, soft knees.","Push the hips back, lower to mid-shin.","The hamstring stretch is the point."],
+"Leg Press / Walking Lunge":["Leg press: feet shoulder-width, push the platform away.","Lunge: step forward holding dumbbells."],
+"Calf Raise":["Stand on an edge, rise onto your toes.","Pause at the top.","Lower below the edge for a full stretch."],
+"Neck Curl (flexion)":["Lie on your back, head off the bench.","Plate on the forehead on a towel, both hands on it.","Tuck chin to chest, lower slowly. Never jerk."],
+"Lateral Neck Flexion (per side)":["Lie on your side, head off the bench.","Plate on the side of your head.","Raise ear to shoulder, lower slowly.","Both sides."],
+"Overhead Press":["Bar at the collarbone.","Press straight up until the arms lock.","Squeeze the glutes, lower back neutral."],
+"Barbell Shrug":["Heavy bar at the hips.","Shrug straight up towards your ears.","Pause at the top, lower slowly. No rolling."],
+"Weighted Dip / Incline Press":["Dip: lower until upper arms are parallel to the floor.","Lean forward a little for chest.","Incline: bench at 30–45°, press from the shoulders."],
+"Barbell Row":["Hinge to about 45°.","Pull to the lower ribs, elbows back.","Squeeze the shoulder blades. Don't jerk with the back."],
+"Lat Pulldown":["Grip a little wider than the shoulders.","Pull to the upper chest, elbows down.","Let it up slowly to a full stretch."],
+"Cable Lateral Raise":["One arm on a low cable.","Raise the arm out to the side.","Tension the whole way up and down."],
+"EZ-Bar Curl":["Stand, elbows pinned to your sides.","Curl up, 2–3 s down.","No swinging the torso."],
+"Triceps Pushdown":["High cable, bar or rope.","Elbows fixed at your sides.","Push down until the arms lock, control back up."],
+"Trap Bar Deadlift":["Stand in the middle of the bar.","Flat back, drive through the floor.","Stand up tall."],
+"Trap Bar Shrug":["Same bar, strip a plate if needed.","Shrug straight up towards your ears.","Pause at the top, lower slowly."],
+"Bulgarian Split Squat (per leg)":["Rear foot on a bench, dumbbells in hands.","Lower until the front thigh is parallel.","Push back up."],
+"Leg Curl":["Curl the pad towards your glutes with your heels.","Lower slowly."],
+"Neck Extension":["Lie face down, head off the bench.","Plate on the back of your head.","Lift your head up, lower slowly."]};
 
 const KEY='liftlog';
 let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}'), cur=null, noSave=false;
 const save=()=>{if(!noSave)localStorage.setItem(KEY,JSON.stringify(db))};
 const app=document.getElementById('app'), hdr=document.getElementById('hdr'), importFile=document.getElementById('importFile');
 const back=document.getElementById('homeBtn'), exp=document.getElementById('export');
+const rest=document.getElementById('rest'), restClock=document.getElementById('restClock'), restBar=document.getElementById('restBar'), restNx=document.getElementById('restNx'), restTips=document.getElementById('restTips');
 const today=()=>new Date().toLocaleDateString('sv');
 const byDate=(a,b)=>(b.date+b.id).localeCompare(a.date+a.id);
 const done=s=>s.rir!=null;
@@ -150,6 +199,17 @@ function suggest(ex,sets){
   if(d.length>=ex.sets&&d.every(s=>s.r>=ex.hi))return'up';
   return null;
 }
+// What comes after a set of `name` in session s, and how long to rest before it.
+// A1 goes straight into A2; A2 goes back to A1; a finished exercise moves to the next one with an open set.
+function afterSet(s,name){
+  const list=PROGRAM[s.name],k=list.findIndex(e=>e.name===name),e=list[k];
+  const at=x=>{const i=(s.ex[x.name]||[]).findIndex(st=>!done(st));return i<0?null:{name:x.name,i}};
+  const mate=e.ss&&list.find(x=>x!==e&&x.ss?.[0]===e.ss[0]);
+  if(mate&&e.ss[1]==='1'&&at(mate))return{rest:0,next:at(mate)};
+  const order=(mate?[e,mate].sort((a,b)=>a.ss.localeCompare(b.ss)):[e]).concat(list.slice(k+1),list.slice(0,k));
+  for(const x of order){const n=at(x);if(n)return{rest:e.rest,next:n}}
+  return{rest:e.rest,next:null};
+}
 function newSession(name){
   const s={id:Date.now().toString(36),date:today(),name,bw:null,note:'',ex:{}};
   for(const e of PROGRAM[name]){
@@ -165,7 +225,7 @@ function fmt(sets){
 }
 
 function home(){
-  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;
+  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();
   const next=nextName(),all=db.sessions.slice().sort(byDate);
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
@@ -174,7 +234,7 @@ function home(){
   scrollTo(0,0);
 }
 function session(s){
-  cur=s;hdr.textContent=s.name;back.hidden=false;exp.hidden=true;
+  cur=s;hdr.textContent=s.name;back.hidden=false;exp.hidden=true;stopRest();
   app.innerHTML=`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>`
    +PROGRAM[s.name].map(e=>exCard(s,e)).join('')
    +`<div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
@@ -196,6 +256,25 @@ function setRow(st,i){
   <div class="num r"><button data-step="r:-1">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r"><button data-step="r:1">+</button></div>
   <span class="lbl">RIR</span><div class="rir">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}">${v===4?'4+':v}</button>`).join('')}</div></div>`;
 }
+// Rest timer: counts from a fixed end time, so it stays right after the phone locks and wakes.
+let restEnd=0,restLen=0,tick=null;
+function startRest(s,name){
+  const{rest:sec,next}=afterSet(s,name);
+  if(!next)return stopRest();
+  restNx.innerHTML=`Next: ${esc(next.name)} <small>set ${next.i+1} of ${s.ex[next.name].length}</small>`;
+  restTips.innerHTML=(TIPS[next.name]||[]).map(t=>`<li>${esc(t)}</li>`).join('');
+  restLen=sec*1000;restEnd=Date.now()+restLen;
+  rest.hidden=false;document.body.classList.add('resting');
+  clearInterval(tick);tick=setInterval(drawRest,250);drawRest();
+}
+function drawRest(){
+  const left=Math.max(0,restEnd-Date.now()),sec=Math.ceil(left/1000);
+  restClock.textContent=left?`${sec/60|0}:${String(sec%60).padStart(2,'0')}`:'Go';
+  restBar.style.width=(restLen?left/restLen*100:0)+'%';
+  rest.classList.toggle('go',!left);
+  if(!left)clearInterval(tick);
+}
+function stopRest(){clearInterval(tick);rest.hidden=true;document.body.classList.remove('resting')}
 function toggleHist(h){
   const card=h.closest('.ex'),box=card.querySelector('.hist'),name=card.dataset.ex;
   if(!box.hidden){box.hidden=true;return}
@@ -223,9 +302,10 @@ app.addEventListener('click',ev=>{
     st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();return;
   }
   if(b.dataset.rir!==undefined){
-    const v=+b.dataset.rir;st.rir=st.rir===v?null:v;
+    const v=+b.dataset.rir,was=st.rir;st.rir=st.rir===v?null:v;
     row.querySelectorAll('[data-rir]').forEach(x=>x.classList.toggle('on',+x.dataset.rir===st.rir));
     row.classList.toggle('done',st.rir!=null);save();
+    if(was==null&&st.rir!=null)startRest(cur,row.closest('.ex').dataset.ex);
   }
 });
 app.addEventListener('input',ev=>{
@@ -235,6 +315,7 @@ app.addEventListener('input',ev=>{
   if(el.dataset.k){const row=el.closest('.set');cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i][el.dataset.k]=num(el.value);save()}
 });
 back.onclick=home;
+document.getElementById('skip').onclick=stopRest;
 exp.onclick=async()=>{
   const name=`liftlog-${today()}.json`,file=new File([JSON.stringify(db,null,1)],name,{type:'application/json'});
   if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:name})}catch{}return}
@@ -270,6 +351,21 @@ function runTests(){
   session(u);
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
+  const all=Object.values(PROGRAM).flat();
+  t('every exercise has a rest time and tips',all.every(e=>e.rest>0&&TIPS[e.name]?.length));
+  const blank=name=>({name,ex:Object.fromEntries(PROGRAM[name].map(e=>[e.name,Array.from({length:e.sets},()=>({w:null,r:null,rir:null}))]))});
+  const ua=blank('Upper A'),N=a=>a.next&&a.next.name+' '+a.next.i+' '+a.rest;
+  ua.ex['Barbell Bench Press'][0].rir=1;
+  t('rest after a set, same exercise next',N(afterSet(ua,'Barbell Bench Press'))==='Barbell Bench Press 1 180');
+  ua.ex['Barbell Bench Press'].forEach(x=>x.rir=1);
+  t('last set moves to the next exercise',N(afterSet(ua,'Barbell Bench Press'))==='Incline DB Press 0 180');
+  ua.ex['Incline DB Press'][0].rir=1;
+  t('A1 goes straight into A2',N(afterSet(ua,'Incline DB Press'))==='Weighted Pull-up / Lat Pulldown 0 0');
+  ua.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
+  t('A2 rests, then back to A1',N(afterSet(ua,'Weighted Pull-up / Lat Pulldown'))==='Incline DB Press 1 120');
+  Object.values(ua.ex).flat().forEach(x=>x.rir=1);
+  t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
+  startRest(u,'Barbell Bench Press');
   out.push('viewport '+innerWidth+'px');
   const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
   db=real;

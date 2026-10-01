@@ -15,9 +15,9 @@ training goal is hypertrophy and looks; the program and its reasoning are in `do
 - Verify layout at 390 CSS px before calling UI work done. Headless Chromium lays pages out at
   about 480 px minimum; screenshot `tools/phone.html` as the README shows. Use a fresh profile
   directory or the service worker will serve the stale copy and hide your edit.
-- Look (owner's decision, 2026-10-01): dark only, Liquid Glass per Apple's guidance. Glass goes
+- Look (owner's decision, 2026-10-01): black and white only, no colour, Liquid Glass per Apple's guidance. Glass goes
   only on floating controls (header buttons, primary actions, the chosen RIR); content stays on
-  plain cards. Do not spread glass onto content or bring back light mode without asking.
+  plain cards. Do not spread glass onto content, add colour or bring back light mode without asking.
 - The owner decides anything a user sees: wording, thresholds, program changes, new features.
   Propose in plain words, get a yes, then build. Do not add features "while at it".
 - UI text: plain words a lifter understands. No statistics jargon. One idea per line.
