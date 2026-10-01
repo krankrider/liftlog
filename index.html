@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lift log">
+<meta name="theme-color" content="#1f4e79">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Lift log</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--fg:#111;--mut:#667;--card:#f3f5f8;--line:#d8dde5;--acc:#1f4e79;--ok:#1a7f4b;--warn:#b3261e}
+@media(prefers-color-scheme:dark){:root{--bg:#111418;--fg:#e8eaee;--mut:#9aa3ad;--card:#1b2026;--line:#2c333c;--acc:#5aa0dc;--ok:#4cc38a;--warn:#f28b82}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.35 -apple-system,system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
+header{position:sticky;top:0;z-index:1;background:#1f4e79;color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;display:flex;align-items:center;gap:8px}
+header button{background:none;border:0;color:#fff;font:inherit;font-weight:600;padding:6px}
+header span{flex:1;text-align:center;font-weight:600}
+main{padding:12px;max-width:600px;margin:0 auto}
+button,input,textarea{font:inherit;touch-action:manipulation}
+h2{font-size:15px;color:var(--mut);margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+.big{display:block;width:100%;padding:16px;margin:8px 0;border-radius:12px;border:0;background:var(--acc);color:#fff;font-size:18px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid button{padding:12px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.card{background:var(--card);border-radius:12px;padding:10px 12px;margin:10px 0}
+.ex h3{margin:0;font-size:17px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rx{color:var(--mut);font-size:14px;white-space:nowrap}
+.tag{font-size:12px;padding:1px 6px;border-radius:6px;background:var(--line);vertical-align:middle}
+.badge{font-weight:600}.up{color:var(--ok)}.down{color:var(--warn)}
+.last{color:var(--mut);font-size:13px;margin:4px 0 6px}
+.hist{font-size:13px;color:var(--mut);margin:0 0 8px;white-space:pre-line;font-variant-numeric:tabular-nums}
+.set{display:grid;grid-template-columns:24px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:6px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.set.done{opacity:.5}
+.n{grid-area:n;color:var(--mut);font-size:13px;text-align:center}
+.lbl{grid-area:l;color:var(--mut);font-size:11px;text-align:center}
+.w{grid-area:w}.r{grid-area:r}
+.num{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.num button{width:36px;height:40px;border:0;background:none;color:var(--acc);font-size:22px;flex:none}
+.num input{width:100%;min-width:0;text-align:center;border:0;background:none;color:var(--fg);font-size:17px;height:40px;-moz-appearance:textfield;padding:0}
+.num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{display:none}
+.rir{grid-area:rir;display:flex;gap:4px}
+.rir button{flex:1;height:36px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);font-size:14px}
+.rir button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.top{display:flex;gap:8px;align-items:center}
+input[type=date],.bw,textarea{padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.bw{width:90px;-moz-appearance:textfield}
+textarea{width:100%;min-height:64px;resize:vertical}
+.list button{display:block;width:100%;text-align:left;padding:12px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg)}
+.del{background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:10px 12px}
+.foot{display:flex;justify-content:space-between;align-items:center;margin:16px 0}
+.link{background:none;border:0;color:var(--acc);padding:0;text-decoration:underline}
+</style>
+</head>
+<body>
+<header><button id="homeBtn">Lift log</button><span id="hdr"></span><button id="export">Export</button></header>
+<main id="app"></main>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+// Program v4 (sets, rep range, target RIR, superset tag). Edit here when the program changes.
+function X(name,sets,lo,hi,rir,ss){return{name,sets,lo,hi,rir,ss}}
+const PROGRAM={
+"Upper A":[
+ X("Barbell Bench Press",3,5,8,"1-2"),
+ X("Incline DB Press",4,8,12,"1-2","A1"),
+ X("Weighted Pull-up / Lat Pulldown",4,8,10,"1-2","A2"),
+ X("Lateral Raise (DB)",4,15,20,"0-1"),
+ X("Face Pull",3,15,20,"1-2"),
+ X("Incline DB Curl",3,10,15,"0-1","B1"),
+ X("Overhead Cable Triceps Ext.",3,10,15,"0-1","B2")],
+"Lower A":[
+ X("Back Squat",3,5,8,"1-2"),
+ X("Romanian Deadlift",3,8,10,"1-2"),
+ X("Leg Press / Walking Lunge",3,10,12,"1-2"),
+ X("Calf Raise",3,12,15,"0-1","A1"),
+ X("Neck Curl (flexion)",3,15,20,"2","A2"),
+ X("Lateral Neck Flexion (per side)",2,15,20,"2")],
+"Upper B":[
+ X("Overhead Press",3,6,10,"1-2"),
+ X("Barbell Shrug",4,10,15,"0-1"),
+ X("Weighted Dip / Incline Press",3,8,12,"1-2","A1"),
+ X("Barbell Row",3,8,12,"1-2","A2"),
+ X("Lat Pulldown",3,12,15,"1-2"),
+ X("Cable Lateral Raise",4,15,20,"0-1"),
+ X("EZ-Bar Curl",3,8,12,"1-2","B1"),
+ X("Triceps Pushdown",3,10,15,"0-1","B2")],
+"Lower B":[
+ X("Trap Bar Deadlift",3,5,8,"1-2"),
+ X("Trap Bar Shrug",3,10,15,"0-1"),
+ X("Bulgarian Split Squat (per leg)",3,8,12,"1-2"),
+ X("Leg Curl",3,10,12,"1-2"),
+ X("Calf Raise",3,12,15,"0-1","A1"),
+ X("Neck Extension",3,15,20,"2","A2"),
+ X("Lateral Neck Flexion (per side)",2,15,20,"2")]};
+
+const KEY='liftlog';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}'), cur=null, noSave=false;
+const save=()=>{if(!noSave)localStorage.setItem(KEY,JSON.stringify(db))};
+const app=document.getElementById('app'), hdr=document.getElementById('hdr'), importFile=document.getElementById('importFile');
+const today=()=>new Date().toLocaleDateString('sv');
+const byDate=(a,b)=>(b.date+b.id).localeCompare(a.date+a.id);
+const done=s=>s.rir!=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const names=()=>Object.keys(PROGRAM);
+
+function lastOf(name,excludeId){return db.sessions.filter(s=>s.id!==excludeId&&s.ex[name]?.some(done)).sort(byDate)[0]||null}
+function nextName(){const last=db.sessions.slice().sort(byDate)[0],n=names();return last?n[(n.indexOf(last.name)+1)%n.length]:n[0]}
+
+// Double progression from the program: all sets at the top of the range -> add weight; any set under the range -> too heavy.
+function suggest(ex,sets){
+  const d=(sets||[]).filter(s=>done(s)&&s.r!=null);
+  if(!d.length)return null;
+  if(d.some(s=>s.r<ex.lo))return'down';
+  if(d.length>=ex.sets&&d.every(s=>s.r>=ex.hi))return'up';
+  return null;
+}
+function newSession(name){
+  const s={id:Date.now().toString(36),date:today(),name,bw:null,note:'',ex:{}};
+  for(const e of PROGRAM[name]){
+    const prev=lastOf(e.name),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
+    s.ex[e.name]=Array.from({length:e.sets},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?p.w:null,r:p?(sug==='up'?e.lo:p.r):null,rir:null}});
+  }
+  db.sessions.push(s);save();return s;
+}
+function fmt(sets){
+  if(!sets.length)return'';
+  if(new Set(sets.map(x=>x.w)).size===1)return`${sets[0].w??'–'} kg · ${sets.map(x=>`${x.r??'–'}@${x.rir}`).join(' ')}`;
+  return sets.map(x=>`${x.w??'–'}×${x.r??'–'}@${x.rir}`).join(' ');
+}
+
+function home(){
+  cur=null;hdr.textContent='';
+  const next=nextName(),all=db.sessions.slice().sort(byDate);
+  app.innerHTML=`<button class="big" data-start="${next}">Start ${next}</button>
+  <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
+  <h2>History</h2><div class="list">${all.map(s=>`<button data-open="${s.id}">${s.date} · ${s.name}${s.bw?` · ${s.bw} kg`:''}</button>`).join('')||'<p class="rx">Nothing logged yet.</p>'}</div>
+  <p class="rx" style="white-space:normal;margin-top:20px">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
+}
+function session(s){
+  cur=s;hdr.textContent=s.name;
+  app.innerHTML=`<div class="card top"><input type="date" value="${s.date}" data-f="date"><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"><span class="rx">bodyweight</span></div>`
+   +PROGRAM[s.name].map(e=>exCard(s,e)).join('')
+   +`<div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
+   <div class="foot"><button class="del" data-del>Delete session</button><button class="big" style="width:auto;margin:0;padding:12px 28px" data-finish>Done</button></div>`;
+}
+function exCard(s,e){
+  const sets=s.ex[e.name]??=Array.from({length:e.sets},()=>({w:null,r:null,rir:null}));
+  const prev=lastOf(e.name,s.id),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
+  const badge=sug==='up'?' <span class="badge up">↑ hit the top last time, add weight</span>':sug==='down'?' <span class="badge down">↓ below range last time</span>':'';
+  return`<div class="card ex" data-ex="${esc(e.name)}">
+  <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${e.sets} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
+  <div class="last" data-hist>${prev?`last ${prev.date}: ${fmt(ps)}`:'no history yet'}${badge}</div><div class="hist" hidden></div>
+  ${sets.map((st,i)=>setRow(st,i)).join('')}</div>`;
+}
+function setRow(st,i){
+  return`<div class="set${done(st)?' done':''}" data-i="${i}"><span class="n">${i+1}</span>
+  <div class="num w"><button data-step="w:-2.5">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w"><button data-step="w:2.5">+</button></div>
+  <div class="num r"><button data-step="r:-1">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r"><button data-step="r:1">+</button></div>
+  <span class="lbl">RIR</span><div class="rir">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}">${v===4?'4+':v}</button>`).join('')}</div></div>`;
+}
+function toggleHist(h){
+  const card=h.closest('.ex'),box=card.querySelector('.hist'),name=card.dataset.ex;
+  if(!box.hidden){box.hidden=true;return}
+  const rows=db.sessions.filter(s=>s!==cur&&s.ex[name]?.some(done)).sort(byDate).slice(0,8).map(s=>`${s.date}  ${fmt(s.ex[name].filter(done))}`);
+  box.textContent=rows.join('\n')||'No earlier sessions.';box.hidden=false;
+}
+
+app.addEventListener('click',ev=>{
+  const h=ev.target.closest('[data-hist]');if(h)return toggleHist(h);
+  const b=ev.target.closest('button');if(!b)return;
+  if(b.dataset.start)return session(newSession(b.dataset.start));
+  if(b.dataset.open)return session(db.sessions.find(s=>s.id===b.dataset.open));
+  if(b.id==='imp')return importFile.click();
+  if(!cur)return;
+  if('finish'in b.dataset)return home();
+  if('del'in b.dataset){
+    if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again to delete';return}
+    db.sessions=db.sessions.filter(s=>s!==cur);save();return home();
+  }
+  const row=b.closest('.set');if(!row)return;
+  const st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];
+  if(b.dataset.step){
+    const[k,d]=b.dataset.step.split(':'),v=Math.max(0,Math.round(((st[k]??0)+ +d)*100)/100);
+    st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();return;
+  }
+  if(b.dataset.rir!==undefined){
+    const v=+b.dataset.rir;st.rir=st.rir===v?null:v;
+    row.querySelectorAll('[data-rir]').forEach(x=>x.classList.toggle('on',+x.dataset.rir===st.rir));
+    row.classList.toggle('done',st.rir!=null);save();
+  }
+});
+app.addEventListener('input',ev=>{
+  const el=ev.target;if(!cur)return;
+  const num=v=>v===''?null:+v;
+  if(el.dataset.f){cur[el.dataset.f]=el.type==='number'?num(el.value):el.value;save();return}
+  if(el.dataset.k){const row=el.closest('.set');cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i][el.dataset.k]=num(el.value);save()}
+});
+document.getElementById('homeBtn').onclick=home;
+document.getElementById('export').onclick=async()=>{
+  const name=`liftlog-${today()}.json`,file=new File([JSON.stringify(db,null,1)],name,{type:'application/json'});
+  if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:name})}catch{}return}
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(file),download:name});a.click();
+};
+importFile.onchange=async()=>{
+  const f=importFile.files[0];importFile.value='';if(!f)return;
+  try{const d=JSON.parse(await f.text()),have=new Set(db.sessions.map(s=>s.id));
+    for(const s of d.sessions||[])if(!have.has(s.id))db.sessions.push(s);
+    save();home();hdr.textContent='Imported';}catch{hdr.textContent='Import failed'}
+};
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// Self-check: open index.html#test. Renders PASS/FAIL lines plus a sample session, touches no saved data.
+function runTests(){
+  const out=[],t=(n,c)=>out.push((c?'PASS ':'FAIL ')+n),S=(r,rir=1,w=60)=>({w,r,rir});
+  const e={name:'x',sets:3,lo:5,hi:8,rir:'1-2'};
+  t('up when all sets hit the top',suggest(e,[S(8),S(8),S(8)])==='up');
+  t('no up when one set is short',suggest(e,[S(8),S(8),S(7)])===null);
+  t('no up with fewer sets than prescribed',suggest(e,[S(8),S(8)])===null);
+  t('down when a set is under the range',suggest(e,[S(8),S(6),S(4)])==='down');
+  t('null when nothing was rated',suggest(e,[{w:60,r:8,rir:null}])===null);
+  noSave=true;const real=db;
+  db={sessions:[{id:'a',date:'2026-01-01',name:'Upper A',bw:80,note:'',ex:{'Barbell Bench Press':[S(8),S(8),S(8)],'Incline DB Press':[S(10,2,24),S(9,1,24),S(8,0,24)]}}]};
+  const s=newSession(nextName());
+  t('next session after Upper A is Lower A',s.name==='Lower A');
+  const u=newSession('Upper A');
+  t('prefill weight from last time',u.ex['Barbell Bench Press'].every(x=>x.w===60));
+  t('prefill reps at the bottom after an up',u.ex['Barbell Bench Press'].every(x=>x.r===5));
+  t('prefill reps as last time otherwise',u.ex['Incline DB Press'].slice(0,3).map(x=>x.r).join()==='10,9,8');
+  t('extra set copies the last logged set',u.ex['Incline DB Press'][3].r===8);
+  t('rir blank on prefill',u.ex['Barbell Bench Press'].every(x=>x.rir===null));
+  out.push('viewport '+innerWidth+'px');
+  session(u);const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
+  db=real;
+}
+location.hash==='#test'?runTests():home();
+</script>
+</body>
+</html>
