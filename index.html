@@ -7,55 +7,87 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lift log">
-<meta name="theme-color" content="#1f4e79">
+<meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Lift log</title>
 <style>
-:root{color-scheme:light dark;--bg:#fff;--fg:#111;--mut:#667;--card:#f3f5f8;--line:#d8dde5;--acc:#1f4e79;--ok:#1a7f4b;--warn:#b3261e}
-@media(prefers-color-scheme:dark){:root{--bg:#111418;--fg:#e8eaee;--mut:#9aa3ad;--card:#1b2026;--line:#2c333c;--acc:#5aa0dc;--ok:#4cc38a;--warn:#f28b82}}
-*{box-sizing:border-box}
-body{margin:0;font:16px/1.35 -apple-system,system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
-header{position:sticky;top:0;z-index:1;background:#1f4e79;color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;display:flex;align-items:center;gap:8px}
-header button{background:none;border:0;color:#fff;font:inherit;font-weight:600;padding:6px}
-header span{flex:1;text-align:center;font-weight:600}
-main{padding:12px;max-width:600px;margin:0 auto}
-button,input,textarea{font:inherit;touch-action:manipulation}
-h2{font-size:15px;color:var(--mut);margin:20px 0 6px;text-transform:uppercase;letter-spacing:.04em}
-.big{display:block;width:100%;padding:16px;margin:8px 0;border-radius:12px;border:0;background:var(--acc);color:#fff;font-size:18px;font-weight:600}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.grid button{padding:12px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
-.card{background:var(--card);border-radius:12px;padding:10px 12px;margin:10px 0}
-.ex h3{margin:0;font-size:17px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.rx{color:var(--mut);font-size:14px;white-space:nowrap}
-.tag{font-size:12px;padding:1px 6px;border-radius:6px;background:var(--line);vertical-align:middle}
-.badge{font-weight:600}.up{color:var(--ok)}.down{color:var(--warn)}
-.last{color:var(--mut);font-size:13px;margin:4px 0 6px}
-.hist{font-size:13px;color:var(--mut);margin:0 0 8px;white-space:pre-line;font-variant-numeric:tabular-nums}
-.set{display:grid;grid-template-columns:24px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:6px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
-.set.done{opacity:.5}
-.n{grid-area:n;color:var(--mut);font-size:13px;text-align:center}
-.lbl{grid-area:l;color:var(--mut);font-size:11px;text-align:center}
+/* Liquid Glass per Apple's HIG: glass only on the floating controls (header buttons, primary actions);
+   content sits on plain cards. Dark only, like Apple Fitness, so the white status bar text always reads. */
+:root{color-scheme:dark;--fg:#fff;--mut:rgba(235,235,245,.6);--dim:rgba(235,235,245,.3);--fill:rgba(120,120,128,.32);--fill2:rgba(118,118,128,.2);--card:rgba(28,28,30,.72);--line:rgba(84,84,88,.6);--acc:#0a84ff;--ok:#30d158;--warn:#ff453a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{background:#000}
+body{margin:0;font:17px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 10% 0%,rgba(10,132,255,.38),transparent 70%),radial-gradient(55% 40% at 100% 30%,rgba(94,92,230,.3),transparent 70%),radial-gradient(70% 45% at 30% 100%,rgba(100,210,255,.16),transparent 70%)}
+button,input,textarea{font:inherit;color:inherit;touch-action:manipulation}
+button{cursor:pointer;transition:transform .2s,background-color .2s}
+.glass{border-radius:999px;border:.5px solid rgba(255,255,255,.22);font-weight:600;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 1px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.35)}
+.tint,.rir .on{border:0;border-radius:999px;font-weight:600;color:#fff;background:linear-gradient(#3d9bff,#0a6ff0);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 5px rgba(0,0,0,.15),0 6px 20px rgba(10,132,255,.35)}
+.glass:active,.tint:active,.grid button:active{transform:scale(.95)}
+header{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:calc(env(safe-area-inset-top) + 6px) 16px 16px;background:linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.35) 65%,transparent)}
+header::before{content:"";position:absolute;inset:0;z-index:-1;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+header button{height:44px;min-width:44px;padding:0 18px;font-size:17px}
+#homeBtn{grid-column:1;justify-self:start;padding:0;display:grid;place-items:center}
+#hdr{grid-column:2;font-weight:600}
+#export{grid-column:3;justify-self:end}
+main{padding:0 16px;max-width:600px;margin:0 auto}
+h1{font-size:34px;font-weight:700;margin:0 4px 16px}
+h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
+.big{display:block;width:100%;height:58px;margin:0 0 12px;font-size:19px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid button,.card,.group,.del{background:var(--card);border:.5px solid rgba(255,255,255,.08);box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
+.grid button{height:50px;border-radius:25px;font-weight:600}
+.card{border-radius:26px;padding:14px 16px;margin:12px 0}
+.group{border-radius:26px;overflow:hidden}
+/* Swipe-to-delete with no script: each history row scrolls sideways and snaps to show the Delete button. */
+.row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.row+.row{background:linear-gradient(var(--line),var(--line)) 16px 0/100% .5px no-repeat}
+.open{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;gap:10px;min-height:62px;padding:10px 16px;border:0;background:none;text-align:left}
+.open:active{background:var(--fill2)}
+.open .t{flex:1;display:flex;flex-direction:column}
+.open b{font-weight:600}
+.open small{color:var(--mut);font-size:14px;font-variant-numeric:tabular-nums}
+.chev{color:var(--dim);font-size:26px;line-height:1}
+.rm{flex:none;scroll-snap-align:end;width:96px;border:0;background:var(--warn);color:#fff;font-weight:600}
+.ex h3{margin:0;font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rx{color:var(--mut);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(10,132,255,.2);color:#6cb4ff;vertical-align:2px}
+.last{color:var(--mut);font-size:14px;margin:4px 0 10px;font-variant-numeric:tabular-nums}
+.badge{display:table;margin-top:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px}
+.up{color:var(--ok);background:rgba(48,209,88,.15)}.down{color:var(--warn);background:rgba(255,69,58,.15)}
+.hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
+.set{display:grid;grid-template-columns:28px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
+.set:last-child{padding-bottom:2px}
+.set.done .num,.set.done .n{opacity:.45}
+.n{grid-area:n;color:var(--mut);font-size:15px;font-weight:600;text-align:center}
+.lbl{grid-area:l;color:var(--mut);font-size:11px;font-weight:600;text-align:center}
 .w{grid-area:w}.r{grid-area:r}
-.num{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
-.num button{width:36px;height:40px;border:0;background:none;color:var(--acc);font-size:22px;flex:none}
-.num input{width:100%;min-width:0;text-align:center;border:0;background:none;color:var(--fg);font-size:17px;height:40px;-moz-appearance:textfield;padding:0}
+.num{display:flex;align-items:center;height:44px;border-radius:22px;background:var(--fill2);overflow:hidden}
+.num button{width:44px;height:44px;border:0;background:none;color:var(--acc);font-size:24px;flex:none}
+.num button:active{background:var(--fill)}
+.num input{width:100%;min-width:0;height:44px;text-align:center;border:0;background:none;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;padding:0;outline:none;-moz-appearance:textfield}
 .num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{display:none}
-.rir{grid-area:rir;display:flex;gap:4px}
-.rir button{flex:1;height:36px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);font-size:14px}
-.rir button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.top{display:flex;gap:8px;align-items:center}
-input[type=date],.bw,textarea{padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
-.bw{width:90px;-moz-appearance:textfield}
-textarea{width:100%;min-height:64px;resize:vertical}
-.list button{display:block;width:100%;text-align:left;padding:12px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--fg)}
-.del{background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:10px 12px}
-.foot{display:flex;justify-content:space-between;align-items:center;margin:16px 0}
-.link{background:none;border:0;color:var(--acc);padding:0;text-decoration:underline}
+.rir{grid-area:rir;display:flex;gap:2px;padding:3px;border-radius:22px;background:var(--fill2)}
+.rir button{flex:1;height:38px;border:0;border-radius:19px;background:none;font-size:15px;font-weight:600}
+.form{padding-block:4px}
+.fr{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px}
+.fr+.fr{border-top:.5px solid var(--line)}
+.fr input{border:0;border-radius:10px;background:var(--fill2);padding:6px 10px;font-size:17px;outline:none}
+.bw{width:90px;text-align:right;-moz-appearance:textfield}
+textarea{display:block;width:100%;min-height:72px;border:0;background:none;resize:vertical;font-size:17px;outline:none;padding:0}
+::placeholder{color:var(--dim);font-weight:400}
+.foot{margin-top:24px}
+.del{display:block;width:100%;height:50px;margin-top:14px;border-radius:25px;color:var(--warn);font-weight:600}
+.note{color:var(--mut);font-size:13px;text-align:center;margin:28px 8px}
+.link{background:none;border:0;color:var(--acc);padding:0;font-size:inherit}
+#t{font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--mut);background:var(--card);padding:12px 14px;border-radius:18px;white-space:pre-wrap;margin:0 0 12px}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#1c1c1e;--mut:rgba(235,235,245,.8)}.glass{background:#2c2c2e;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
 </style>
 </head>
 <body>
-<header><button id="homeBtn">Lift log</button><span id="hdr"></span><button id="export">Export</button></header>
+<header><button id="homeBtn" class="glass" aria-label="Back" hidden><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="hdr"></span><button id="export" class="glass">Export</button></header>
 <main id="app"></main>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
@@ -99,11 +131,13 @@ const KEY='liftlog';
 let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}'), cur=null, noSave=false;
 const save=()=>{if(!noSave)localStorage.setItem(KEY,JSON.stringify(db))};
 const app=document.getElementById('app'), hdr=document.getElementById('hdr'), importFile=document.getElementById('importFile');
+const back=document.getElementById('homeBtn'), exp=document.getElementById('export');
 const today=()=>new Date().toLocaleDateString('sv');
 const byDate=(a,b)=>(b.date+b.id).localeCompare(a.date+a.id);
 const done=s=>s.rir!=null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const names=()=>Object.keys(PROGRAM);
+const drop=id=>{db.sessions=db.sessions.filter(s=>s.id!==id);save()};
 
 function lastOf(name,excludeId){return db.sessions.filter(s=>s.id!==excludeId&&s.ex[name]?.some(done)).sort(byDate)[0]||null}
 function nextName(){const last=db.sessions.slice().sort(byDate)[0],n=names();return last?n[(n.indexOf(last.name)+1)%n.length]:n[0]}
@@ -131,19 +165,21 @@ function fmt(sets){
 }
 
 function home(){
-  cur=null;hdr.textContent='';
+  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;
   const next=nextName(),all=db.sessions.slice().sort(byDate);
-  app.innerHTML=`<button class="big" data-start="${next}">Start ${next}</button>
+  app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
-  <h2>History</h2><div class="list">${all.map(s=>`<button data-open="${s.id}">${s.date} · ${s.name}${s.bw?` · ${s.bw} kg`:''}</button>`).join('')||'<p class="rx">Nothing logged yet.</p>'}</div>
-  <p class="rx" style="white-space:normal;margin-top:20px">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
+  <h2>History</h2>${all.length?`<div class="group">${all.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${esc(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}</div>`:'<p class="note">Nothing logged yet.</p>'}
+  <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
+  scrollTo(0,0);
 }
 function session(s){
-  cur=s;hdr.textContent=s.name;
-  app.innerHTML=`<div class="card top"><input type="date" value="${s.date}" data-f="date"><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"><span class="rx">bodyweight</span></div>`
+  cur=s;hdr.textContent=s.name;back.hidden=false;exp.hidden=true;
+  app.innerHTML=`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>`
    +PROGRAM[s.name].map(e=>exCard(s,e)).join('')
    +`<div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
-   <div class="foot"><button class="del" data-del>Delete session</button><button class="big" style="width:auto;margin:0;padding:12px 28px" data-finish>Done</button></div>`;
+   <div class="foot"><button class="big tint" data-finish>Done</button><button class="del" data-del>Delete session</button></div>`;
+  scrollTo(0,0);
 }
 function exCard(s,e){
   const sets=s.ex[e.name]??=Array.from({length:e.sets},()=>({w:null,r:null,rir:null}));
@@ -173,11 +209,12 @@ app.addEventListener('click',ev=>{
   if(b.dataset.start)return session(newSession(b.dataset.start));
   if(b.dataset.open)return session(db.sessions.find(s=>s.id===b.dataset.open));
   if(b.id==='imp')return importFile.click();
+  if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
   if(!cur)return;
   if('finish'in b.dataset)return home();
   if('del'in b.dataset){
     if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again to delete';return}
-    db.sessions=db.sessions.filter(s=>s!==cur);save();return home();
+    drop(cur.id);return home();
   }
   const row=b.closest('.set');if(!row)return;
   const st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];
@@ -197,8 +234,8 @@ app.addEventListener('input',ev=>{
   if(el.dataset.f){cur[el.dataset.f]=el.type==='number'?num(el.value):el.value;save();return}
   if(el.dataset.k){const row=el.closest('.set');cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i][el.dataset.k]=num(el.value);save()}
 });
-document.getElementById('homeBtn').onclick=home;
-document.getElementById('export').onclick=async()=>{
+back.onclick=home;
+exp.onclick=async()=>{
   const name=`liftlog-${today()}.json`,file=new File([JSON.stringify(db,null,1)],name,{type:'application/json'});
   if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:name})}catch{}return}
   const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(file),download:name});a.click();
@@ -230,8 +267,11 @@ function runTests(){
   t('prefill reps as last time otherwise',u.ex['Incline DB Press'].slice(0,3).map(x=>x.r).join()==='10,9,8');
   t('extra set copies the last logged set',u.ex['Incline DB Press'][3].r===8);
   t('rir blank on prefill',u.ex['Barbell Bench Press'].every(x=>x.rir===null));
+  session(u);
+  db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
+  t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
   out.push('viewport '+innerWidth+'px');
-  session(u);const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
+  const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
   db=real;
 }
 location.hash==='#test'?runTests():home();
