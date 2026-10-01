@@ -64,7 +64,7 @@ On Windows the binary is `msedge.exe` under `C:\Program Files (x86)\Microsoft\Ed
 Hosted on Vercel (Hobby plan) from this private repo. Framework "Other", no build command, no
 output directory. Push to `main` and Vercel redeploys.
 
-Production URL: `https://________.vercel.app` (fill in after the first deploy).
+Production URL: `[https://________.vercel.app](https://liftlog-lilac.vercel.app/)`.
 
 Vercel Hobby deploys private repos as long as they belong to a personal GitHub account, which
 is why Vercel was chosen over GitHub Pages (free Pages needs a public repo).
