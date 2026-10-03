@@ -17,8 +17,10 @@ Days can shift. Keep at least one rest day between the two upper sessions.
 - **Volume.** 10–20 hard sets per muscle per week. More is fatigue, not growth.
 - **Progression.** Double progression: add reps inside the range. When every set hits the top
   of the range, add weight next time and restart at the bottom. Also add weight when every set
-  was RIR 3 or easier: the weight is too light to count as a hard set. The app's badges
-  implement exactly these rules; it never changes the weight for you.
+  was RIR 3 or easier: the weight is too light to count as a hard set. The app applies these
+  rules itself: it fills in +2.5 kg and the bottom of the range. Below the range two sessions
+  in a row at the same weight, it fills in about 10% less (rounded to 2.5 kg). One bad session
+  only gets a badge. Deload weeks keep the weight.
 - **Deload.** Every 5–6 weeks cut volume about 40% for one week, or sooner when reps stall two
   weeks running or joints complain. In the first blocks a fixed schedule is premature.
   In the app, a deload week keeps the weights and cuts sets to about 60% (3 → 2, 4 → 2, 2 → 1).

@@ -17,20 +17,37 @@ personal account. Read `CLAUDE.md` before changing anything.
   reps stepper (±1), both open the numeric keypad when tapped, and a row of RIR chips 0–4+.
   Tapping a chip marks the set done. An unrated set is not counted anywhere.
 - Weight and reps are prefilled from the last time that exercise was done, so a repeat set is
-  one tap. If every set hit the top of the rep range last time, the exercise shows an
-  "add weight" badge and reps prefill at the bottom of the range. If a set fell under the
-  range, it shows a "below range" badge. This is the program's double-progression rule.
-  If every set was rated RIR 3 or 4+ last time, it also shows "add weight" ("every set felt
-  easy") and reps prefill at the bottom of the range.
+  one tap. If every set hit the top of the rep range last time, the weight prefills 2.5 kg
+  heavier, reps at the bottom of the range, and the badge says "+2.5 kg". The same happens
+  when every set was rated RIR 3 or 4+ ("every set felt easy"). This is the program's
+  double-progression rule. If a set fell under the range, it shows a "below range" badge and
+  keeps the weight; if that happens two sessions in a row at the same weight, the weight
+  prefills about 10% lighter (rounded to 2.5 kg, at least 2.5 off), reps at the bottom, and
+  the badge says how much. Deload sessions keep the weight and show the old "add weight" text.
+- A rated set that beats the exercise's record (more reps than ever at that weight or heavier,
+  counting earlier sets today) shows a "New best" mark. Never on the first time an exercise is
+  logged, or every set would be one.
+- Done shows a summary of today's session: minutes, new bests, which exercises get +2.5 kg next
+  time, how the week stands, and any trophy this session earned. Earlier sessions and empty
+  ones go straight home.
+- Home shows this week's sessions out of 4 and full weeks in a row (Monday to Sunday, all 4
+  sessions; deload weeks count when trained; this week counts once it is full).
+- Trophies on home, black-and-white medals, solid when earned with the date, outlined with
+  what is left when not: 1/10/25/50/100 sessions; 4/12/26 full weeks in a row; 1/10/25
+  weight jumps earned (an exercise that hit the add-weight rule); plate clubs for 5+ reps
+  (bench 60/100, squat 100/140, trap bar 140/180, overhead press 60); a deload week taken
+  after at least 4 weeks of training. All worked out from history, nothing extra saved.
 - The first lift of each session shows its warm-up under the "last ..." line, worked out from
   set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
 - In a session the header shows the minutes since the first rated set (today only). It stops
   at the last rated set once nothing has been rated for 30 minutes.
 - Rating a set starts a rest timer at the bottom of the screen: first heavy compound 3 min,
   other compounds 2 min, isolation 90 s, lateral neck 45 s (from the v3 PDF; per exercise in
-  PROGRAM). A1 of a superset goes straight to A2 with no countdown. While it runs it shows the
-  next exercise and set, with that exercise's cues from the PDF's exercise guide (the TIPS
-  table). At zero it turns white and says Go. Skip closes it. Re-rating a set does not restart it.
+  PROGRAM). A1 of a superset goes straight to A2: the card says "No rest" and "Superset: straight
+  to ..." instead of counting down. That only happens while A2 is behind A1, so logging A2 first
+  still gives a normal rest. While it runs it shows the next exercise (with its superset tag) and
+  set, with that exercise's cues from the PDF's exercise guide (the TIPS table). At zero it turns
+  white and says Go. Skip closes it. Re-rating a set does not restart it.
 - Tapping the "last ..." line under an exercise opens its last 8 sessions.
 - Bodyweight and a notes field per session. Everything autosaves on each tap.
 - Home shows the average bodyweight of the last 7 days and the change on the 7 days before.
@@ -129,6 +146,8 @@ Open the production URL in Safari, Share, Add to Home Screen. Open it from the i
 
 ## Not built, deliberately
 
+- Points, XP and levels: numbers that mean nothing. No trophy for total kilos lifted either,
+  since that rewards junk volume. No daily streak: rest days are part of the program.
 - Sound or vibration when the rest timer ends (iOS web apps cannot vibrate).
 - Deload due when reps stall two weeks running. Only the 6-week count is built.
 - Editing the program inside the app. Edit the PROGRAM table in `index.html` instead.

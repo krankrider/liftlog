@@ -60,6 +60,9 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 .hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
 .set{display:grid;grid-template-columns:28px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
 .set:last-child{padding-bottom:2px}
+.nb{grid-area:nb;display:none;justify-self:start;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;color:#000;background:#fff}
+.set.best{grid-template-areas:"n w r" "l rir rir" ". nb nb"}
+.set.best .nb{display:block}
 .set.done .num,.set.done .n{opacity:.45}
 .n{grid-area:n;color:var(--mut);font-size:15px;font-weight:600;text-align:center}
 .lbl{grid-area:l;color:var(--mut);font-size:11px;font-weight:600;text-align:center}
@@ -95,6 +98,15 @@ textarea{display:block;width:100%;min-height:72px;border:0;background:none;resiz
 .day.on b{background:#fff;color:#000;font-weight:600}
 .day.now b{box-shadow:inset 0 0 0 1.5px #fff;color:var(--fg)}
 .day.on.now b{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff;color:#000}
+/* Trophies: earned ones are solid white medals with a ring, locked ones an outline. */
+h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
+.trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;padding:18px 10px}
+.tr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+.tr b{display:grid;place-items:center;width:56px;height:56px;margin-bottom:8px;border-radius:50%;font-size:17px;font-weight:700;color:var(--dim);box-shadow:inset 0 0 0 1.5px var(--fill)}
+.tr.got b{background:#fff;color:#000;box-shadow:0 0 0 3px #000,0 0 0 4.5px #fff}
+.tr span{font-size:13px;font-weight:600;line-height:1.25;color:var(--mut)}
+.tr.got span{color:var(--fg)}
+.tr small{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
 /* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). Turns white when it is time to lift. */
 #rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000}
 body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
@@ -109,7 +121,7 @@ body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 #rest.go{background:#fff;color:#000}
 #rest.go .bar{visibility:hidden}
 #rest.go #restNx small,#rest.go #restTips{color:rgba(0,0,0,.6)}
-#rest.go #skip{background:#000;color:#fff;box-shadow:none}
+#rest.go #skip,#rest.go .tag{background:#000;color:#fff;box-shadow:none}
 @media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#181818;--mut:rgba(255,255,255,.8)}.glass{background:#2a2a2a;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
 </style>
 </head>
@@ -236,8 +248,61 @@ function mins(s,now){
   return Math.floor(((now-s.last<18e5?now:s.last)-s.start)/6e4);
 }
 
-function lastOf(name,excludeId){return db.sessions.filter(s=>s.id!==excludeId&&!s.deload&&s.ex[name]?.some(done)).sort(byDate)[0]||null}
 function nextName(){const last=db.sessions.slice().sort(byDate)[0],n=names();return last?n[(n.indexOf(last.name)+1)%n.length]:n[0]}
+
+// New best: a rated set with more reps than ever at that weight or heavier, counting earlier sessions and
+// earlier sets this session. Not on the first time an exercise is logged, or every set would be one.
+function best(s,name,i){
+  const st=s.ex[name]?.[i],key=x=>x.date+x.id,ok=x=>done(x)&&x.w!=null&&x.r!=null;
+  if(!st||!ok(st))return false;
+  const old=db.sessions.filter(x=>x!==s&&key(x)<key(s)).flatMap(x=>(x.ex?.[name]||[]).filter(ok));
+  return old.length>0&&![...old,...s.ex[name].slice(0,i).filter(ok)].some(x=>x.w>=st.w&&x.r>=st.r);
+}
+// Weeks run Monday to Sunday. A full week is all 4 sessions; deload weeks count when trained.
+const FULL=4;
+const trained=s=>Object.values(s.ex||{}).some(a=>a.some(done));
+const weekOf=d=>addDays(d,-((new Date(d+'T12:00').getDay()+6)%7));
+const asc=()=>db.sessions.filter(trained).sort((a,b)=>byDate(b,a));
+function weeks(){const m={};for(const s of asc())(m[weekOf(s.date)]??=[]).push(s);return m}
+// Full weeks in a row up to now. This week counts once it is full; until then it does not break the run.
+function streak(){
+  const m=weeks(),full=w=>(m[w]?.length||0)>=FULL;
+  let w=weekOf(today()),n=0;if(!full(w))w=addDays(w,-7);
+  while(full(w)){n++;w=addDays(w,-7)}
+  return n;
+}
+// Trophies, worked out from history every time, so nothing extra is saved. got is the session that earned it.
+const PLATES=[["Barbell Bench Press","Bench",60],["Barbell Bench Press","Bench",100],["Back Squat","Squat",100],["Back Squat","Squat",140],["Trap Bar Deadlift","Trap bar",140],["Trap Bar Deadlift","Trap bar",180],["Overhead Press","Overhead press",60]];
+function trophies(){
+  const all=asc(),out=[],T=(icon,name,got,left)=>out.push({icon,name,got:got||null,left:got?'':left});
+  for(const n of[1,10,25,50,100])T(String(n),n===1?'First session':`${n} sessions`,all[n-1],`${n-all.length} to go`);
+  const m=weeks(),run={};let r=0,last=null;
+  for(const k of Object.keys(m).sort()){if(m[k].length<FULL)continue;r=last&&addDays(last,7)===k?r+1:1;last=k;run[r]??=m[k][FULL-1]}
+  const st=streak();
+  for(const n of[4,12,26])T(n+'wk',`${n} full weeks in a row`,run[n],`${n-st} more`);
+  let j=0;const jump={};
+  for(const s of all)if(!s.deload)for(const e of PROGRAM[s.name]||[]){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')jump[++j]=s}
+  for(const n of[1,10,25])T(n===1?'↑':n+'↑',n===1?'First weight jump earned':`${n} weight jumps earned`,jump[n],`${n-j} to go`);
+  for(const[ex,label,k]of PLATES){
+    const five=s=>(s.ex[ex]||[]).filter(x=>done(x)&&x.r>=5),b=Math.max(0,...all.flatMap(s=>five(s).map(x=>x.w||0)));
+    T(String(k),`${label} ${k}\u00a0kg\u00a0×\u00a05`,all.find(s=>five(s).some(x=>x.w>=k)),b?`${kg(k-b)} kg to go`:'');
+  }
+  let from=all[0]?.date,dl=null;
+  for(const s of all){if(!s.deload||daysBetween(from,s.date)<0)continue;if(daysBetween(from,s.date)>=28)dl??=s;from=addDays(s.date,7)}
+  T('☾','Deload week on time',dl,'Take one in week 5 or 6');
+  return out;
+}
+const trHTML=t=>`<div class="tr${t.got?' got':''}"><b>${esc(t.icon)}</b><span>${esc(t.name)}</span><small>${t.got?niceDate(t.got.date):esc(t.left)}</small></div>`;
+// What Done shows: new bests, weight earned for next time, the week, trophies earned by this session.
+function summary(s){
+  const lines=[],list=PROGRAM[s.name];
+  const nb=list.reduce((n,e)=>n+(s.ex[e.name]||[]).filter((_,i)=>best(s,e.name,i)).length,0);
+  if(nb)lines.push(nb===1?'1 new best':`${nb} new bests`);
+  if(!s.deload)for(const e of list){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')lines.push(`${e.name}: +2.5 kg next time`)}
+  const wk=weeks()[weekOf(s.date)]?.length||0;
+  lines.push(wk>=FULL?`Full week. ${streak()} in a row`:`This week: ${wk} of ${FULL}`);
+  return{lines,tr:trophies().filter(t=>t.got?.id===s.id)};
+}
 
 // Double progression from the program: all sets at the top of the range -> add weight; any set under the range -> too heavy.
 // Every set rated RIR 3 or more -> too light, add weight too ('easy').
@@ -250,22 +315,36 @@ function suggest(ex,sets){
   return null;
 }
 // What comes after a set of `name` in session s, and how long to rest before it.
-// A1 goes straight into A2; A2 goes back to A1; a finished exercise moves to the next one with an open set.
+// A1 goes straight into A2 (only while A2 is behind, so logging out of order still rests); A2 goes back to A1;
+// a finished exercise moves to the next one with an open set.
 function afterSet(s,name){
   const list=PROGRAM[s.name],k=list.findIndex(e=>e.name===name),e=list[k];
-  const at=x=>{const i=(s.ex[x.name]||[]).findIndex(st=>!done(st));return i<0?null:{name:x.name,i}};
+  const at=x=>{const i=(s.ex[x.name]||[]).findIndex(st=>!done(st));return i<0?null:{name:x.name,i,ss:x.ss}};
+  const n=x=>(s.ex[x.name]||[]).filter(done).length;
   const mate=e.ss&&list.find(x=>x!==e&&x.ss?.[0]===e.ss[0]);
-  if(mate&&e.ss[1]==='1'&&at(mate))return{rest:0,next:at(mate)};
+  if(mate&&e.ss[1]==='1'&&at(mate)&&n(mate)<n(e))return{rest:0,next:at(mate),straight:true};
   const order=(mate?[e,mate].sort((a,b)=>a.ss.localeCompare(b.ss)):[e]).concat(list.slice(k+1),list.slice(0,k));
   for(const x of order){const n=at(x);if(n)return{rest:e.rest,next:n}}
   return{rest:e.rest,next:null};
 }
+// The weight the app fills in: +2.5 kg after an up or easy; about 10% less (rounded to 2.5, at least 2.5 off)
+// after a second session in a row below the range at the same weight ('drop'). Deload weeks keep the weight.
+const STEP=2.5,kg=x=>Math.round(x*100)/100;
+function dropW(w){let d=Math.round(w*.9/STEP)*STEP;if(d>=w)d=w-STEP;return Math.max(0,kg(d))}
+function plan(e,excludeId){
+  const hist=db.sessions.filter(x=>x.id!==excludeId&&!x.deload&&x.ex[e.name]?.some(done)).sort(byDate);
+  const sets=x=>x?x.ex[e.name].filter(done):[],top=x=>Math.max(...sets(x).map(st=>st.w??0));
+  const prev=hist[0]||null,ps=sets(prev);let sug=suggest(e,ps);
+  if(sug==='down'&&hist[1]&&suggest(e,sets(hist[1]))==='down'&&top(hist[0])===top(hist[1]))sug='drop';
+  return{prev,ps,sug};
+}
+function nextW(w,sug){return w==null?w:sug==='up'||sug==='easy'?kg(w+STEP):sug==='drop'?dropW(w):w}
 function newSession(name){
   const s={id:Date.now().toString(36),date:today(),name,bw:null,note:'',ex:{}};
   if(deloadOn())s.deload=true;
   for(const e of PROGRAM[name]){
-    const prev=lastOf(e.name),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
-    s.ex[e.name]=Array.from({length:setsFor(s,e)},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?p.w:null,r:p?(sug==='up'||sug==='easy'?e.lo:p.r):null,rir:null}});
+    const{ps,sug}=plan(e),move=!s.deload&&sug;
+    s.ex[e.name]=Array.from({length:setsFor(s,e)},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?(move?nextW(p.w,sug):p.w):null,r:p?(sug==='up'||sug==='easy'||move==='drop'?e.lo:p.r):null,rir:null}});
   }
   db.sessions.push(s);save();return s;
 }
@@ -291,13 +370,26 @@ function home(){
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
   const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwLine(),dl=deloadInfo();
   const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
+  const wk=weeks()[weekOf(today())]?.length||0,info=[bw,dlText,all.some(trained)&&`This week: ${wk} of ${FULL}`,all.some(trained)&&`Full weeks in a row: ${streak()}`].filter(x=>x);
+  const tr=trophies();
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
-  ${bw||dl?`<div class="card form">${bw?`<div class="fr">${bw}</div>`:''}${dl?`<div class="fr">${dlText}</div>`:''}</div>`:''}
+  ${info.length?`<div class="card form">${info.map(x=>`<div class="fr">${x}</div>`).join('')}</div>`:''}
   ${dl&&!dl.on?'<button class="del" data-deload>Start deload week</button>':''}
   <h2>Calendar</h2>${calHTML(calY,calM)}
+  <h2>Trophies <small>${tr.filter(t=>t.got).length} of ${tr.length}</small></h2><div class="card trophies">${tr.map(trHTML).join('')}</div>
   <h2>History</h2>${all.length?`<div class="group">${all.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${esc(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}</div>`:'<p class="note">Nothing logged yet.</p>'}
   <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
+  scrollTo(0,0);
+}
+// Done: a summary of today's session before home. Earlier sessions and empty ones go straight home.
+function finish(s){
+  if(s.date!==today()||!trained(s))return home();
+  const m=mins(s,Date.now()),{lines,tr}=summary(s);
+  cur=null;hdr.textContent='';back.hidden=false;exp.hidden=true;stopRest();clearInterval(clock);
+  app.innerHTML=`<h1>${esc(s.name)} done</h1><div class="card form">${(m!=null?[`${m} min`]:[]).concat(lines).map(l=>`<div class="fr">${esc(l)}</div>`).join('')}</div>
+  ${tr.length?`<h2>${tr.length===1?'New trophy':'New trophies'}</h2><div class="card trophies">${tr.map(trHTML).join('')}</div>`:''}
+  <div class="foot"><button class="big tint" data-home>Home</button></div>`;
   scrollTo(0,0);
 }
 // Header in a session: name, Deload, minutes so far.
@@ -318,27 +410,32 @@ function session(s){
 }
 function exCard(s,e){
   const sets=s.ex[e.name]??=Array.from({length:setsFor(s,e)},()=>({w:null,r:null,rir:null}));
-  const prev=lastOf(e.name,s.id),ps=prev?prev.ex[e.name].filter(done):[],sug=suggest(e,ps);
-  const badge=sug==='up'?' <span class="badge up">↑ hit the top last time, add weight</span>':sug==='easy'?' <span class="badge up">↑ every set felt easy, add weight</span>':sug==='down'?' <span class="badge down">↓ below range last time</span>':'';
+  const{prev,ps,sug}=plan(e,s.id),w=ps[0]?.w,off=w>0?kg(w-dropW(w)):0;
+  const add=s.deload||w==null?', add weight':': +2.5 kg';
+  const badge=sug==='up'?` <span class="badge up">↑ hit the top last time${add}</span>`:sug==='easy'?` <span class="badge up">↑ every set felt easy${add}</span>`
+   :sug==='drop'&&!s.deload?` <span class="badge down">↓ below range twice${off?`: −${off} kg`:''}</span>`:sug?' <span class="badge down">↓ below range last time</span>':'';
   const wu=e===PROGRAM[s.name][0]?warmup(sets[0]?.w):null;
   return`<div class="card ex" data-ex="${esc(e.name)}">
   <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${setsFor(s,e)} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
   <div class="last" data-hist>${prev?`last ${prev.date}: ${fmt(ps)}`:'no history yet'}${badge}</div><div class="hist" hidden></div>
   ${wu==null?'':`<div class="last wu"${wu?'':' hidden'}>${wu}</div>`}
-  ${sets.map((st,i)=>setRow(st,i)).join('')}</div>`;
+  ${sets.map((st,i)=>setRow(st,i,best(s,e.name,i))).join('')}</div>`;
 }
-function setRow(st,i){
-  return`<div class="set${done(st)?' done':''}" data-i="${i}"><span class="n">${i+1}</span>
+function setRow(st,i,nb){
+  return`<div class="set${done(st)?' done':''}${nb?' best':''}" data-i="${i}"><span class="n">${i+1}</span>
   <div class="num w"><button data-step="w:-2.5">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w"><button data-step="w:2.5">+</button></div>
   <div class="num r"><button data-step="r:-1">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r"><button data-step="r:1">+</button></div>
-  <span class="lbl">RIR</span><div class="rir">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}">${v===4?'4+':v}</button>`).join('')}</div></div>`;
+  <span class="lbl">RIR</span><div class="rir">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}">${v===4?'4+':v}</button>`).join('')}</div><span class="nb">New best</span></div>`;
 }
 // Rest timer: counts from a fixed end time, so it stays right after the phone locks and wakes.
-let restEnd=0,restLen=0,tick=null;
+// Straight into the superset partner: no countdown, the card says "No rest" and names the partner.
+let restEnd=0,restLen=0,tick=null,straight=false;
 function startRest(s,name){
-  const{rest:sec,next}=afterSet(s,name);
+  const{rest:sec,next,straight:st}=afterSet(s,name);
   if(!next)return stopRest();
-  restNx.innerHTML=`Next: ${esc(next.name)} <small>set ${next.i+1} of ${s.ex[next.name].length}</small>`;
+  straight=!!st;
+  const set=`<small>set ${next.i+1} of ${s.ex[next.name].length}</small>`;
+  restNx.innerHTML=straight?`Superset: straight to ${esc(next.name)}, ${set}`:`Next: ${esc(next.name)}${next.ss?` <span class="tag">${next.ss}</span>`:''}, ${set}`;
   restTips.innerHTML=(TIPS[next.name]||[]).map(t=>`<li>${esc(t)}</li>`).join('');
   restLen=sec*1000;restEnd=Date.now()+restLen;
   rest.hidden=false;document.body.classList.add('resting');
@@ -346,7 +443,7 @@ function startRest(s,name){
 }
 function drawRest(){
   const left=Math.max(0,restEnd-Date.now()),sec=Math.ceil(left/1000);
-  restClock.textContent=left?`${sec/60|0}:${String(sec%60).padStart(2,'0')}`:'Go';
+  restClock.textContent=left?`${sec/60|0}:${String(sec%60).padStart(2,'0')}`:straight?'No rest':'Go';
   restBar.style.width=(restLen?left/restLen*100:0)+'%';
   rest.classList.toggle('go',!left);
   if(!left)clearInterval(tick);
@@ -365,6 +462,7 @@ app.addEventListener('click',ev=>{
   if(b.dataset.start)return session(newSession(b.dataset.start));
   if(b.dataset.open)return session(db.sessions.find(s=>s.id===b.dataset.open));
   if(b.id==='imp')return importFile.click();
+  if('home'in b.dataset)return home();
   if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
   if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
   if('deload'in b.dataset){
@@ -372,7 +470,7 @@ app.addEventListener('click',ev=>{
     db.deload=today();save();return home();
   }
   if(!cur)return;
-  if('finish'in b.dataset)return home();
+  if('finish'in b.dataset)return finish(cur);
   if('del'in b.dataset){
     if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again to delete';return}
     drop(cur.id);return home();
@@ -381,14 +479,14 @@ app.addEventListener('click',ev=>{
   const st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];
   if(b.dataset.step){
     const[k,d]=b.dataset.step.split(':'),v=Math.max(0,Math.round(((st[k]??0)+ +d)*100)/100);
-    st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();return updWarmup(row,st);
+    st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();markBests(row.closest('.ex'));return updWarmup(row,st);
   }
   if(b.dataset.rir!==undefined){
     const v=+b.dataset.rir,was=st.rir;st.rir=st.rir===v?null:v;
     row.querySelectorAll('[data-rir]').forEach(x=>x.classList.toggle('on',+x.dataset.rir===st.rir));
     row.classList.toggle('done',st.rir!=null);
     if(st.rir!=null){cur.start??=Date.now();cur.last=Date.now();head()}
-    save();
+    save();markBests(row.closest('.ex'));
     if(was==null&&st.rir!=null)startRest(cur,row.closest('.ex').dataset.ex);
   }
 });
@@ -396,9 +494,12 @@ app.addEventListener('input',ev=>{
   const el=ev.target;if(!cur)return;
   const num=v=>v===''?null:+v;
   if(el.dataset.f){cur[el.dataset.f]=el.type==='number'?num(el.value):el.value;save();return}
-  if(el.dataset.k){const row=el.closest('.set'),st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];st[el.dataset.k]=num(el.value);save();updWarmup(row,st)}
+  if(el.dataset.k){const row=el.closest('.set'),st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];st[el.dataset.k]=num(el.value);save();updWarmup(row,st);markBests(row.closest('.ex'))}
 });
 // The warm-up line follows set 1's weight.
+function markBests(card){
+  card.querySelectorAll('.set').forEach(row=>row.classList.toggle('best',best(cur,card.dataset.ex,+row.dataset.i)));
+}
 function updWarmup(row,st){
   const box=row.closest('.ex').querySelector('.wu');
   if(!box||row.dataset.i!=='0')return;
@@ -456,18 +557,66 @@ function runTests(){
   const dA=newSession('Upper A'),dL=newSession('Lower A');
   t('deload: 3 sets become 2, 4 become 2, 2 become 1',dA.deload&&dA.ex['Barbell Bench Press'].length===2&&dA.ex['Incline DB Press'].length===2&&dL.ex['Lateral Neck Flexion (per side)'].length===1);
   dA.ex['Barbell Bench Press'].forEach(x=>{x.rir=1;x.r=5});
-  t('deload sessions do not feed badges or prefill',lastOf('Barbell Bench Press').id==='a');
+  t('deload keeps the weight after an up',dA.ex['Barbell Bench Press'][0].w===60);
+  t('deload sessions do not feed badges or prefill',plan(PROGRAM['Upper A'][0]).prev.id==='a');
   db={sessions:[{id:'a',date:'2026-01-01',name:'Upper A',bw:80,note:'',ex:{'Barbell Bench Press':[S(8),S(8),S(8)],'Incline DB Press':[S(10,2,24),S(9,1,24),S(8,0,24)],'Overhead Press':[S(7,3,40),S(7,3,40),S(8,4,40)]}}]};
   const s=newSession(nextName());
   t('next session after Upper A is Lower A',s.name==='Lower A');
   const u=newSession('Upper A');
-  t('prefill weight from last time',u.ex['Barbell Bench Press'].every(x=>x.w===60));
+  t('add 2.5 kg after an up',u.ex['Barbell Bench Press'].every(x=>x.w===62.5));
+  t('keep the weight otherwise',u.ex['Incline DB Press'].every(x=>x.w===24));
   t('prefill reps at the bottom after an up',u.ex['Barbell Bench Press'].every(x=>x.r===5));
   t('prefill reps as last time otherwise',u.ex['Incline DB Press'].slice(0,3).map(x=>x.r).join()==='10,9,8');
   t('extra set copies the last logged set',u.ex['Incline DB Press'][3].r===8);
   t('rir blank on prefill',u.ex['Barbell Bench Press'].every(x=>x.rir===null));
-  t('prefill reps at the bottom after easy',newSession('Upper B').ex['Overhead Press'].every(x=>x.w===40&&x.r===6));
-  session(u);
+  t('prefill reps at the bottom after easy',newSession('Upper B').ex['Overhead Press'].every(x=>x.w===42.5&&x.r===6));
+  const db0=db;
+  t('weight drop: 10% rounded to 2.5, at least 2.5',dropW(60)===55&&dropW(100)===90&&dropW(10)===7.5&&dropW(2.5)===0&&dropW(0)===0);
+  const B=(id,date,w,r)=>({id,date,name:'Upper A',ex:{'Barbell Bench Press':[S(6,1,w),S(5,1,w),S(r,1,w)]}});
+  db={sessions:[B('m1','2026-01-01',80,4)]};
+  t('one miss keeps the weight',newSession('Upper A').ex['Barbell Bench Press'].map(x=>x.w+'x'+x.r).join()==='80x6,80x5,80x4');
+  db={sessions:[B('m1','2026-01-01',80,4),B('m2','2026-01-04',80,3)]};
+  t('two misses in a row at the same weight drop it',newSession('Upper A').ex['Barbell Bench Press'].every(x=>x.w===72.5&&x.r===5));
+  db={sessions:[B('m1','2026-01-01',85,4),B('m2','2026-01-04',80,3)]};
+  t('misses at different weights do not drop it',newSession('Upper A').ex['Barbell Bench Press'].every(x=>x.w===80));
+  db={sessions:[B('m1','2026-01-01',80,4),B('m2','2026-01-04',80,6),B('m3','2026-01-07',80,4)]};
+  t('misses must be in a row',newSession('Upper A').ex['Barbell Bench Press'].every(x=>x.w===80));
+  db={sessions:[B('m1','2026-01-01',80,4),B('m2','2026-01-04',80,3)]};const dr=newSession('Upper A');session(dr);
+  t('drop badge says how much',app.querySelector('.badge')?.textContent==='↓ below range twice: −7.5 kg');
+  db=db0;session(u);
+  t('up badge says +2.5 kg',app.querySelector('.badge')?.textContent==='↑ hit the top last time: +2.5 kg');
+  app.querySelector('.set [data-rir="1"]').click();
+  t('new best mark shows when a heavier set is rated',app.querySelector('.set').classList.contains('best'));
+  const BP='Barbell Bench Press',mk=(id,date,w=60,r=8)=>({id,date,name:'Upper A',ex:{[BP]:[S(r,1,w)]}});
+  db={sessions:[mk('p1','2026-01-01')]};
+  const cs={id:'c',date:'2026-01-05',name:'Upper A',ex:{[BP]:[S(9,1,60),S(9,1,60),S(8,1,62.5),S(9,1,55),{w:70,r:9,rir:null}]}};
+  t('new best: more reps at the same weight',best(cs,BP,0));
+  t('new best: not when it only matches a set earlier today',!best(cs,BP,1));
+  t('new best: heavier for the same reps',best(cs,BP,2));
+  t('new best: not when a heavier set had as many reps',!best(cs,BP,3));
+  t('new best: not on an unrated set',!best(cs,BP,4));
+  t('new best: never the first time an exercise is logged',!best(mk('z','2025-12-01',60,9),BP,0));
+  t('weeks start on Monday',weekOf('2026-10-03')==='2026-09-28'&&weekOf('2026-09-28')==='2026-09-28'&&weekOf('2026-10-04')==='2026-09-28');
+  const W=weekOf(today()),wkS=(start,n,p)=>Array.from({length:n},(_,i)=>mk(p+i,addDays(start,i)));
+  db={sessions:[...wkS(addDays(W,-14),4,'a'),...wkS(addDays(W,-7),4,'b'),...wkS(W,2,'c')]};
+  t('streak: this week does not count until it is full',streak()===2);
+  const tr=trophies(),g=n=>tr.find(x=>x.name===n);
+  t('trophy: 10 sessions earned by the 10th',g('10 sessions').got?.id==='c1');
+  t('trophy: what is left',g('25 sessions').left==='15 to go'&&g('4 full weeks in a row').left==='2 more');
+  db.sessions.push(...wkS(addDays(W,2),2,'d'));
+  t('streak: a full week counts straight away',streak()===3);
+  db={sessions:[...wkS(addDays(W,-21),4,'a'),...wkS(addDays(W,-14),3,'b'),...wkS(addDays(W,-7),4,'c')]};
+  t('streak: a short week breaks it',streak()===1);
+  db={sessions:[mk('x1','2026-01-01',100,4),mk('x2','2026-01-03',60,5)]};
+  t('trophy: plate club needs 5 reps',!g2('Bench 100\u00a0kg\u00a0×\u00a05').got&&g2('Bench 100\u00a0kg\u00a0×\u00a05').left==='40 kg to go'&&g2('Bench 60\u00a0kg\u00a0×\u00a05').got?.id==='x2');
+  function g2(n){return trophies().find(x=>x.name===n)}
+  db={sessions:[mk('d0','2026-01-01'),{...mk('d1','2026-01-20'),deload:true},{...mk('d2','2026-02-25'),deload:true}]};
+  t('trophy: deload only counts after 4 weeks of training',g2('Deload week on time').got?.id==='d2');
+  const sm={id:'s',date:today(),name:'Upper A',ex:{[BP]:[S(8,1,62.5),S(8,1,62.5),S(8,1,62.5)]}};
+  db={sessions:[mk('p1','2026-01-01'),sm]};
+  const sum=summary(sm);
+  t('summary: new bests, weight for next time, the week',sum.lines.join('|')==='1 new best|Barbell Bench Press: +2.5 kg next time|This week: 1 of 4');
+  t('summary: trophies earned by this session',sum.tr.map(x=>x.name).join()==='First weight jump earned');
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
   db={sessions:[{id:'x',date:'2026-10-05',name:'Upper B'}]};
@@ -484,9 +633,17 @@ function runTests(){
   ua.ex['Barbell Bench Press'].forEach(x=>x.rir=1);
   t('last set moves to the next exercise',N(afterSet(ua,'Barbell Bench Press'))==='Incline DB Press 0 180');
   ua.ex['Incline DB Press'][0].rir=1;
-  t('A1 goes straight into A2',N(afterSet(ua,'Incline DB Press'))==='Weighted Pull-up / Lat Pulldown 0 0');
+  t('A1 goes straight into A2',N(afterSet(ua,'Incline DB Press'))==='Weighted Pull-up / Lat Pulldown 0 0'&&afterSet(ua,'Incline DB Press').straight);
   ua.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
-  t('A2 rests, then back to A1',N(afterSet(ua,'Weighted Pull-up / Lat Pulldown'))==='Incline DB Press 1 120');
+  t('A2 rests, then back to A1',N(afterSet(ua,'Weighted Pull-up / Lat Pulldown'))==='Incline DB Press 1 120'&&!afterSet(ua,'Weighted Pull-up / Lat Pulldown').straight);
+  const ub=blank('Upper A');ub.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;ub.ex['Incline DB Press'][0].rir=1;
+  t('A1 logged after A2 rests instead',N(afterSet(ub,'Incline DB Press'))==='Incline DB Press 1 120');
+  const uc=blank('Upper A');uc.ex['Incline DB Press'][0].rir=1;
+  startRest(uc,'Incline DB Press');
+  t('superset card says No rest and names the partner',restClock.textContent==='No rest'&&restNx.textContent==='Superset: straight to Weighted Pull-up / Lat Pulldown, set 1 of 4');
+  uc.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
+  startRest(uc,'Weighted Pull-up / Lat Pulldown');
+  t('next line shows the superset tag',restNx.textContent==='Next: Incline DB Press A1, set 2 of 4'&&restClock.textContent!=='No rest');
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
   startRest(u,'Barbell Bench Press');
