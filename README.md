@@ -61,6 +61,10 @@ personal account. Read `CLAUDE.md` before changing anything.
   set, with that exercise's cues from the PDF's exercise guide (the TIPS table). It slides up
   from the bottom and leaves the same way (a fade with Reduce Motion on). At zero it eases to
   white and says Go. Skip closes it. Re-rating a set does not restart it.
+- The set to log next has a white outline: right after a rating, the set the rest card names;
+  on opening today's session, the set after the first exercise with an open set (so a superset
+  resumes on the half that is behind). If it is off screen the page scrolls it into view between
+  the header and the rest card; otherwise nothing moves. Re-rating a set moves nothing.
 - Tapping the "last ..." line under an exercise opens its last 8 sessions.
 - Bodyweight and a notes field per session. Everything autosaves on each tap.
 - The bodyweight tile is the average of the last 7 days and the change on the 7 days before.

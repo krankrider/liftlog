@@ -77,6 +77,11 @@ h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
    Best where RIR was, so the row never grows and the sets below never move. */
 .set{display:grid;grid-template-columns:32px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
 .set:last-child{padding-bottom:2px}
+/* The set to log next: a white outline drawn outside the layout, 8px clear of the controls, so nothing moves. */
+.set{position:relative}
+.set.nx,.set.nx+.set{border-top-color:transparent}
+.set.nx::before{content:"";position:absolute;inset:4px -8px;border-radius:30px;box-shadow:inset 0 0 0 1.5px #fff;pointer-events:none}
+.set.nx:last-child::before{bottom:-6px}
 .set.done .num{opacity:.45}
 .n{grid-area:n;justify-self:center;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--mut);font-size:15px;font-weight:600;transition:background-color .2s,color .2s,box-shadow .2s}
 .set.done .n{background:#fff;color:#000}
@@ -447,6 +452,19 @@ function session(s){
    <div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
    <div class="foot"><button class="big tint" data-finish>Done</button><button class="del" data-del>Delete session</button></div>`;
   scrollTo(0,0);
+  if(s.date===today())markNext(upNext(s));
+}
+// The set to log next carries an outline. Right after a rating it is the set the rest card names; on opening, the
+// set that follows the first exercise with an open set (so a superset resumes on the right half).
+function upNext(s){const e=PROGRAM[s.name].find(x=>(s.ex[x.name]||[]).some(st=>!done(st)));return e?afterSet(s,e.name).next:null}
+// Mark it and bring it into view between the header and the rest card. Nothing moves when it is already on screen.
+function markNext(nx,smooth){
+  app.querySelectorAll('.set.nx').forEach(r=>r.classList.remove('nx'));
+  const card=nx&&[...app.querySelectorAll('.ex')].find(c=>c.dataset.ex===nx.name),row=card?.querySelector(`.set[data-i="${nx.i}"]`);
+  if(!row)return;
+  row.classList.add('nx');
+  const r=row.getBoundingClientRect(),top=document.querySelector('header').offsetHeight,bottom=innerHeight-(rest.classList.contains('show')?rest.offsetHeight+24:0);
+  if(r.top<top||r.bottom>bottom)scrollTo({top:scrollY+r.top-(top+bottom-r.height)/2,behavior:smooth&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'auto'});
 }
 function exCard(s,e){
   const sets=s.ex[e.name]??=Array.from({length:setsFor(s,e)},()=>({w:null,r:null,rir:null}));
@@ -517,7 +535,7 @@ app.addEventListener('click',ev=>{
     drop(cur.id);return home();
   }
   const row=b.closest('.set');if(!row)return;
-  const st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];
+  const name=row.closest('.ex').dataset.ex,st=cur.ex[name][+row.dataset.i];
   if(b.dataset.step){
     const[k,d]=b.dataset.step.split(':'),v=Math.max(0,Math.round(((st[k]??0)+ +d)*100)/100);
     st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();markBests(row.closest('.ex'));return updWarmup(row,st);
@@ -528,7 +546,7 @@ app.addEventListener('click',ev=>{
     row.classList.toggle('done',st.rir!=null);
     if(st.rir!=null){cur.start??=Date.now();cur.last=Date.now();head()}
     save();markBests(row.closest('.ex'));
-    if(was==null&&st.rir!=null)startRest(cur,row.closest('.ex').dataset.ex);
+    if(was==null&&st.rir!=null){startRest(cur,name);markNext(afterSet(cur,name).next,true)}
   }
 });
 app.addEventListener('input',ev=>{
@@ -645,6 +663,12 @@ function runTests(){
   t('rating a set keeps the row height',row0.offsetHeight===h0&&row0.classList.contains('done'));
   t('the chosen RIR is marked for VoiceOver',row0.querySelector('[data-rir="1"]').getAttribute('aria-pressed')==='true'&&row0.querySelector('[data-rir="0"]').getAttribute('aria-pressed')==='false');
   t('the rest card comes up after a set',rest.classList.contains('show'));
+  const nx=()=>[...app.querySelectorAll('.set.nx')].map(r=>r.closest('.ex').dataset.ex+' '+r.dataset.i).join();
+  t('rating a set outlines the next one',nx()==='Barbell Bench Press 1'&&row0.offsetHeight===h0);
+  scrollTo(0,0);markNext({name:'Barbell Bench Press',i:1});
+  t('nothing moves when the next set is on screen',scrollY===0);
+  markNext({name:'Overhead Cable Triceps Ext.',i:2});const nr=app.querySelector('.set.nx').getBoundingClientRect();
+  t('the next set is brought into view above the rest card',scrollY>0&&nr.top>=document.querySelector('header').offsetHeight&&nr.bottom<=innerHeight-rest.offsetHeight&&nx()==='Overhead Cable Triceps Ext. 2');
   const BP='Barbell Bench Press',mk=(id,date,w=60,r=8)=>({id,date,name:'Upper A',ex:{[BP]:[S(r,1,w)]}});
   db={sessions:[mk('p1','2026-01-01')]};
   const cs={id:'c',date:'2026-01-05',name:'Upper A',ex:{[BP]:[S(9,1,60),S(9,1,60),S(8,1,62.5),S(9,1,55),{w:70,r:9,rir:null}]}};
@@ -715,6 +739,12 @@ function runTests(){
   t('next line shows the superset tag',restNx.textContent==='Next: Incline DB Press A1, set 2 of 4'&&restClock.textContent!=='No rest');
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
+  const un=blank('Upper A'),U=s=>{const n=upNext(s);return n&&n.name+' '+n.i};
+  t('next set: the first lift on a fresh session',U(un)==='Barbell Bench Press 0');
+  un.ex['Barbell Bench Press'].forEach(x=>x.rir=1);un.ex['Incline DB Press'][0].rir=1;
+  t('next set: reopening mid-superset lands on the half that is behind',U(un)==='Weighted Pull-up / Lat Pulldown 0');
+  un.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
+  t('next set: then back to A1',U(un)==='Incline DB Press 1'&&upNext(ua)===null);
   const R=(id,last)=>({...mk(id,today()),last});
   db={sessions:[mk('r0',D(1)),R('r1',Date.now()-5*6e4)]};
   t('a session started today stays open, and opens at launch',running()?.id==='r1'&&launch()?.id==='r1');
