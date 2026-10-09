@@ -21,7 +21,9 @@ html{background:#000}
 body{margin:0;font:17px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 10% 0%,rgba(255,255,255,.13),transparent 70%),radial-gradient(55% 40% at 100% 30%,rgba(255,255,255,.07),transparent 70%),radial-gradient(70% 45% at 30% 100%,rgba(255,255,255,.05),transparent 70%)}
 button,input,textarea{font:inherit;color:inherit;touch-action:manipulation}
-button{cursor:pointer;transition:transform .2s,background-color .2s}
+/* The press shows at once; only the release eases back. */
+button{cursor:pointer;transition:transform .25s cubic-bezier(.2,.9,.3,1),background-color .25s}
+button:active{transition-duration:0s}
 .glass{border-radius:999px;border:.5px solid rgba(255,255,255,.22);font-weight:600;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 1px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.35)}
 .tint,.rir .on{border:0;border-radius:999px;font-weight:600;color:#000;background:linear-gradient(#fff,#d6d6d6);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(0,0,0,.15),0 6px 20px rgba(255,255,255,.12)}
 .glass:active,.tint:active,.grid button:active{transform:scale(.95)}
@@ -32,11 +34,11 @@ header button{height:44px;min-width:44px;padding:0 18px;font-size:17px}
 #hdr{grid-column:2;font-weight:600}
 #export{grid-column:3;justify-self:end}
 main{padding:0 16px;max-width:600px;margin:0 auto}
-h1{font-size:34px;font-weight:700;margin:0 4px 16px}
-h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
+h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:0 4px 16px}
+h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
 .big{display:block;width:100%;height:58px;margin:0 0 12px;font-size:19px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.grid button,.card,.group,.del{background:var(--card);border:.5px solid rgba(255,255,255,.08);box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
+.grid button,.card,.group,.del,.tile{background:var(--card);border:.5px solid rgba(255,255,255,.08);box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
 .grid button{height:50px;border-radius:25px;font-weight:600}
 .card{border-radius:26px;padding:14px 16px;margin:12px 0}
 .group{border-radius:26px;overflow:hidden}
@@ -51,6 +53,19 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 .open small{color:var(--mut);font-size:14px;font-variant-numeric:tabular-nums}
 .chev{color:var(--dim);font-size:26px;line-height:1}
 .rm{flex:none;scroll-snap-align:end;width:96px;border:0;background:#fff;color:#000;font-weight:600}
+.more{display:block;width:100%;min-height:50px;border:0;border-top:.5px solid var(--line);background:none;font-weight:600}
+.trophies+.more{border:0}
+.more:active{background:var(--fill2)}
+/* Home numbers: big number, small label. A lone last tile takes the whole row. */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tile{border-radius:22px;padding:12px 16px 14px;display:flex;flex-direction:column;gap:2px}
+.tile:last-child:nth-child(odd){grid-column:span 2}
+.tile b{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;line-height:1.3;color:var(--mut)}
+.dl{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:8px 8px 8px 16px}
+.dl span{color:var(--mut);font-size:15px}
+.pill{flex:none;height:36px;padding:0 14px;border:0;border-radius:18px;background:var(--fill);font-size:15px;font-weight:600}
+.pill:active{transform:scale(.95)}
 .ex h3{margin:0;font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .rx{color:var(--mut);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--fill);color:#fff;vertical-align:2px}
@@ -58,14 +73,16 @@ h2{font-size:20px;font-weight:700;margin:28px 4px 10px}
 .badge{display:table;margin-top:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px}
 .up{color:#000;background:#fff}.down{color:#fff;box-shadow:inset 0 0 0 1px var(--mut)}
 .hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
-.set{display:grid;grid-template-columns:28px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
+/* A done set's number fills white, like a trained day on the calendar. A new best adds the trophy ring and says
+   Best where RIR was, so the row never grows and the sets below never move. */
+.set{display:grid;grid-template-columns:32px 1fr 1fr;grid-template-areas:"n w r" "l rir rir";gap:8px 10px;align-items:center;padding:12px 0;border-top:.5px solid var(--line)}
 .set:last-child{padding-bottom:2px}
-.nb{grid-area:nb;display:none;justify-self:start;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;color:#000;background:#fff}
-.set.best{grid-template-areas:"n w r" "l rir rir" ". nb nb"}
-.set.best .nb{display:block}
-.set.done .num,.set.done .n{opacity:.45}
-.n{grid-area:n;color:var(--mut);font-size:15px;font-weight:600;text-align:center}
+.set.done .num{opacity:.45}
+.n{grid-area:n;justify-self:center;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:var(--mut);font-size:15px;font-weight:600;transition:background-color .2s,color .2s,box-shadow .2s}
+.set.done .n{background:#fff;color:#000}
+.set.best .n{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff}
 .lbl{grid-area:l;color:var(--mut);font-size:11px;font-weight:600;text-align:center}
+.set.best .lbl{color:var(--fg);font-weight:700}
 .w{grid-area:w}.r{grid-area:r}
 .num{display:flex;align-items:center;height:44px;border-radius:22px;background:var(--fill2);overflow:hidden}
 .num button{width:44px;height:44px;border:0;background:none;color:var(--fg);font-size:24px;flex:none}
@@ -107,28 +124,33 @@ h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
 .tr span{font-size:13px;font-weight:600;line-height:1.25;color:var(--mut)}
 .tr.got span{color:var(--fg)}
 .tr small{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
-/* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). Turns white when it is time to lift. */
-#rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000}
+/* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). It slides up from the bottom and
+   leaves the same way, no bounce. It eases to white when it is time to lift. */
+#rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000;
+  transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));visibility:hidden;transition:transform .45s cubic-bezier(.2,.9,.3,1),visibility 0s .45s,background-color .6s,color .6s}
+#rest.show{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.9,.3,1),visibility 0s,background-color .6s,color .6s}
 body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 .rt{display:flex;align-items:center;justify-content:space-between}
-#restClock{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+#restClock{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 #skip{height:44px;padding:0 18px}
-.bar{height:3px;margin:12px 0 10px;border-radius:2px;background:var(--fill2);overflow:hidden}
-.bar i{display:block;height:100%;background:#fff;transition:width .25s linear}
+.bar{height:3px;margin:12px 0 10px;border-radius:2px;background:var(--fill2);overflow:hidden;transition:opacity .4s}
+.bar i{display:block;height:100%;background:#fff;transform-origin:left;transition:transform .25s linear}
 #restNx{margin:0 0 4px;font-weight:600}
 #restNx small{color:var(--mut);font-size:14px;font-weight:400;white-space:nowrap}
 #restTips{margin:0;padding:0;list-style:none;color:var(--mut);font-size:15px}
 #rest.go{background:#fff;color:#000}
-#rest.go .bar{visibility:hidden}
+#rest.go .bar{opacity:0}
 #rest.go #restNx small,#rest.go #restTips{color:rgba(0,0,0,.6)}
 #rest.go #skip,#rest.go .tag{background:#000;color:#fff;box-shadow:none}
 @media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#181818;--mut:rgba(255,255,255,.8)}.glass{background:#2a2a2a;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
+/* Reduce Motion: the rest card fades instead of sliding. */
+@media (prefers-reduced-motion:reduce){#rest,#rest.show{transform:none;opacity:0;transition:opacity .2s,visibility 0s .2s,background-color .2s,color .2s}#rest.show{opacity:1;transition:opacity .2s,visibility 0s,background-color .2s,color .2s}}
 </style>
 </head>
 <body>
 <header><button id="homeBtn" class="glass" aria-label="Back" hidden><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="hdr"></span><button id="export" class="glass">Export</button></header>
 <main id="app"></main>
-<section id="rest" hidden><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
+<section id="rest" aria-live="polite"><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
 // Program v5 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
@@ -209,7 +231,8 @@ const names=()=>Object.keys(PROGRAM);
 const drop=id=>{db.sessions=db.sessions.filter(s=>s.id!==id);save()};
 const addDays=(d,n)=>new Date(Date.parse(d)+n*864e5).toISOString().slice(0,10);
 const daysBetween=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
-const niceDate=d=>new Date(d+'T12:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+// "Wed 7 Oct", with the year only when it is not this year.
+const niceDate=d=>{const t=new Date(d+'T12:00');return t.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',...(t.getFullYear()!==new Date().getFullYear()&&{year:'numeric'})}).replace(',','')};
 
 // Deload week: db.deload is its first day. For 7 days new sessions get about 60% of the sets at the same weights,
 // and those sessions are left out of badges and prefill.
@@ -223,14 +246,14 @@ function deloadInfo(){
   return{week,due:week>=6,after:db.deload!=null};
 }
 // Average bodyweight of the last 7 days against the 7 days before.
-function bwLine(){
+function bwInfo(){
   const wk=k=>db.sessions.filter(s=>s.bw&&daysBetween(s.date,today())>=k*7&&daysBetween(s.date,today())<k*7+7).map(s=>s.bw);
   const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,now=wk(0),before=wk(1);
-  if(!now.length)return'';
-  const line=`Bodyweight ${avg(now).toFixed(1)} kg`;
-  if(!before.length)return line;
+  if(!now.length)return null;
+  const kg=`${avg(now).toFixed(1)} kg`;
+  if(!before.length)return{kg,note:''};
   const d=Math.round((avg(now)-avg(before))*10)/10;
-  return line+(d?`, ${d>0?'+':'−'}${Math.abs(d).toFixed(1)} on the week before`:', same as the week before');
+  return{kg,note:d?`${d>0?'+':'−'}${Math.abs(d).toFixed(1)} on the week before`:'same as the week before'};
 }
 // Ramp-up from the program for the first lift: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
 function warmup(w){
@@ -270,27 +293,31 @@ function streak(){
   while(full(w)){n++;w=addDays(w,-7)}
   return n;
 }
-// Trophies, worked out from history every time, so nothing extra is saved. got is the session that earned it.
+// Trophies, worked out from history every time, so nothing extra is saved. got is the session that earned it,
+// p how close an unearned one is (0 to 1).
 const PLATES=[["Barbell Bench Press","Bench",60],["Barbell Bench Press","Bench",100],["Back Squat","Squat",100],["Back Squat","Squat",140],["Trap Bar Deadlift","Trap bar",140],["Trap Bar Deadlift","Trap bar",180],["Overhead Press","Overhead press",60]];
 function trophies(){
-  const all=asc(),out=[],T=(icon,name,got,left)=>out.push({icon,name,got:got||null,left:got?'':left});
-  for(const n of[1,10,25,50,100])T(String(n),n===1?'First session':`${n} sessions`,all[n-1],`${n-all.length} to go`);
+  const all=asc(),out=[],T=(icon,name,got,left,p)=>out.push({icon,name,got:got||null,left:got?'':left,p});
+  for(const n of[1,10,25,50,100])T(String(n),n===1?'First session':`${n} sessions`,all[n-1],`${n-all.length} to go`,all.length/n);
   const m=weeks(),run={};let r=0,last=null;
   for(const k of Object.keys(m).sort()){if(m[k].length<FULL)continue;r=last&&addDays(last,7)===k?r+1:1;last=k;run[r]??=m[k][FULL-1]}
   const st=streak();
-  for(const n of[4,12,26])T(n+'wk',`${n} full weeks in a row`,run[n],`${n-st} more`);
+  for(const n of[4,12,26])T(n+'wk',`${n} full weeks in a row`,run[n],`${n-st} more`,st/n);
   let j=0;const jump={};
   for(const s of all)if(!s.deload)for(const e of PROGRAM[s.name]||[]){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')jump[++j]=s}
-  for(const n of[1,10,25])T(n===1?'↑':n+'↑',n===1?'First weight jump earned':`${n} weight jumps earned`,jump[n],`${n-j} to go`);
+  for(const n of[1,10,25])T(n===1?'↑':n+'↑',n===1?'First weight jump earned':`${n} weight jumps earned`,jump[n],`${n-j} to go`,j/n);
   for(const[ex,label,k]of PLATES){
     const five=s=>(s.ex[ex]||[]).filter(x=>done(x)&&x.r>=5),b=Math.max(0,...all.flatMap(s=>five(s).map(x=>x.w||0)));
-    T(String(k),`${label} ${k}\u00a0kg\u00a0×\u00a05`,all.find(s=>five(s).some(x=>x.w>=k)),b?`${kg(k-b)} kg to go`:'');
+    T(String(k),`${label} ${k}\u00a0kg\u00a0×\u00a05`,all.find(s=>five(s).some(x=>x.w>=k)),b?`${kg(k-b)} kg to go`:'',b/k);
   }
   let from=all[0]?.date,dl=null;
   for(const s of all){if(!s.deload||daysBetween(from,s.date)<0)continue;if(daysBetween(from,s.date)>=28)dl??=s;from=addDays(s.date,7)}
-  T('☾','Deload week on time',dl,'Take one in week 5 or 6');
+  const di=deloadInfo();
+  T('☾','Deload week on time',dl,'Take one in week 5 or 6',di?.on?1:Math.min(.99,(di?.week||0)/6));
   return out;
 }
+// Home shows the earned trophies, then the 4 closest to earn; "Show all" adds the rest, closest first.
+const trShown=(tr,all)=>{const got=tr.filter(t=>t.got),left=tr.filter(t=>!t.got).sort((a,b)=>b.p-a.p);return got.concat(all?left:left.slice(0,4))};
 const trHTML=t=>`<div class="tr${t.got?' got':''}"><b>${esc(t.icon)}</b><span>${esc(t.name)}</span><small>${t.got?niceDate(t.got.date):esc(t.left)}</small></div>`;
 // What Done shows: new bests, weight earned for next time, the week, trophies earned by this session.
 function summary(s){
@@ -348,10 +375,12 @@ function newSession(name){
   }
   db.sessions.push(s);save();return s;
 }
+// Rated sets in plain words: "70 kg × 8, 8, 7 · RIR 1, 1, 0", or "60 kg × 8, 62.5 kg × 6 · RIR ..." when the weight changed.
 function fmt(sets){
   if(!sets.length)return'';
-  if(new Set(sets.map(x=>x.w)).size===1)return`${sets[0].w??'–'} kg · ${sets.map(x=>`${x.r??'–'}@${x.rir}`).join(' ')}`;
-  return sets.map(x=>`${x.w??'–'}×${x.r??'–'}@${x.rir}`).join(' ');
+  const w=x=>x.w??'–',r=x=>x.r??'–';
+  const lifts=new Set(sets.map(x=>x.w)).size===1?`${w(sets[0])} kg × ${sets.map(r).join(', ')}`:sets.map(x=>`${w(x)} kg × ${r(x)}`).join(', ');
+  return`${lifts} · RIR ${sets.map(x=>x.rir>=4?'4+':x.rir).join(', ')}`;
 }
 
 // Month calendar, Monday first. A trained day opens its session; the letters are the session (Upper A = UA).
@@ -366,20 +395,23 @@ function calHTML(y,m){
   return`<div class="card cal"><div class="mh"><button data-cal="-1" aria-label="Previous month">‹</button><b>${new Date(y,m,1).toLocaleDateString('en',{month:'long',year:'numeric'})}</b><button data-cal="1" aria-label="Next month">›</button></div>
   <div class="days">${['M','T','W','T','F','S','S'].map(d=>`<i>${d}</i>`).join('')}${cells.join('')}</div></div>`;
 }
+// Home keeps trophies and history short; "Show all" opens the rest until the app is closed.
+const more={tr:false,hist:false},HIST=6;
 function home(){
   if(stale)return location.reload();
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
-  const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwLine(),dl=deloadInfo();
+  const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwInfo(),dl=deloadInfo(),any=all.some(trained);
   const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
-  const wk=weeks()[weekOf(today())]?.length||0,info=[bw,dlText,all.some(trained)&&`This week: ${wk} of ${FULL}`,all.some(trained)&&`All-time lifted: ${kgText(lifted(all))}`,all.some(trained)&&`Full weeks in a row: ${streak()}`].filter(x=>x);
-  const tr=trophies();
+  const wk=weeks()[weekOf(today())]?.length||0;
+  const tiles=[any&&[`${wk} of ${FULL}`,'This week'],any&&[streak(),'Full weeks in a row'],bw&&[bw.kg,bw.note?`Bodyweight, ${bw.note}`:'Bodyweight'],any&&[kgText(lifted(all)),'Lifted, all time']].filter(x=>x);
+  const tr=trophies(),trList=trShown(tr,more.tr),hist=more.hist?all:all.slice(0,HIST);
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
-  ${info.length?`<div class="card form">${info.map(x=>`<div class="fr">${x}</div>`).join('')}</div>`:''}
-  ${dl&&!dl.on?'<button class="del" data-deload>Start deload week</button>':''}
+  ${tiles.length?`<div class="tiles">${tiles.map(([n,l])=>`<div class="tile"><b>${n}</b><span>${esc(l)}</span></div>`).join('')}</div>`:''}
+  ${dl?`<div class="card dl"><span>${dlText}</span>${dl.on?'':'<button class="pill" data-deload>Start deload</button>'}</div>`:''}
   <h2>Calendar</h2>${calHTML(calY,calM)}
-  <h2>Trophies <small>${tr.filter(t=>t.got).length} of ${tr.length}</small></h2><div class="card trophies">${tr.map(trHTML).join('')}</div>
-  <h2>History</h2>${all.length?`<div class="group">${all.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${esc(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}</div>`:'<p class="note">Nothing logged yet.</p>'}
+  <h2>Trophies <small>${tr.filter(t=>t.got).length} of ${tr.length}</small></h2><div class="group"><div class="trophies">${trList.map(trHTML).join('')}</div>${more.tr||trList.length<tr.length?`<button class="more" data-more="tr">${more.tr?'Show less':`Show all ${tr.length}`}</button>`:''}</div>
+  <h2>History</h2>${all.length?`<div class="group">${hist.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${niceDate(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}${all.length>HIST?`<button class="more" data-more="hist">${more.hist?'Show less':`Show all ${all.length}`}</button>`:''}</div>`:'<p class="note">Nothing logged yet.</p>'}
   <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
   scrollTo(0,0);
 }
@@ -403,9 +435,9 @@ function head(){
 function session(s){
   cur=s;back.hidden=false;exp.hidden=true;stopRest();
   head();clearInterval(clock);clock=setInterval(head,15e3);
-  app.innerHTML=`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>`
-   +PROGRAM[s.name].map(e=>exCard(s,e)).join('')
-   +`<div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
+  app.innerHTML=PROGRAM[s.name].map(e=>exCard(s,e)).join('')
+   +`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>
+   <div class="card"><textarea data-f="note" placeholder="Notes for next time: pain, sleep, what to change">${esc(s.note||'')}</textarea></div>
    <div class="foot"><button class="big tint" data-finish>Done</button><button class="del" data-del>Delete session</button></div>`;
   scrollTo(0,0);
 }
@@ -418,15 +450,15 @@ function exCard(s,e){
   const wu=e===PROGRAM[s.name][0]?warmup(sets[0]?.w):null;
   return`<div class="card ex" data-ex="${esc(e.name)}">
   <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${setsFor(s,e)} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
-  <div class="last" data-hist>${prev?`last ${prev.date}: ${fmt(ps)}`:'no history yet'}${badge}</div><div class="hist" hidden></div>
+  <div class="last" data-hist>${prev?`Last time, ${niceDate(prev.date)}: ${fmt(ps)}`:'No history yet'}${badge}</div><div class="hist" hidden></div>
   ${wu==null?'':`<div class="last wu"${wu?'':' hidden'}>${wu}</div>`}
   ${sets.map((st,i)=>setRow(st,i,best(s,e.name,i))).join('')}</div>`;
 }
 function setRow(st,i,nb){
   return`<div class="set${done(st)?' done':''}${nb?' best':''}" data-i="${i}"><span class="n">${i+1}</span>
-  <div class="num w"><button data-step="w:-2.5">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w"><button data-step="w:2.5">+</button></div>
-  <div class="num r"><button data-step="r:-1">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r"><button data-step="r:1">+</button></div>
-  <span class="lbl">RIR</span><div class="rir">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}">${v===4?'4+':v}</button>`).join('')}</div><span class="nb">New best</span></div>`;
+  <div class="num w"><button data-step="w:-2.5" aria-label="Less weight">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w" aria-label="Weight, kg"><button data-step="w:2.5" aria-label="More weight">+</button></div>
+  <div class="num r"><button data-step="r:-1" aria-label="One rep less">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r" aria-label="Reps"><button data-step="r:1" aria-label="One rep more">+</button></div>
+  <span class="lbl">${nb?'Best':'RIR'}</span><div class="rir" role="group" aria-label="Reps in reserve">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}" aria-pressed="${st.rir===v}">${v===4?'4+':v}</button>`).join('')}</div></div>`;
 }
 // Rest timer: counts from a fixed end time, so it stays right after the phone locks and wakes.
 // Straight into the superset partner: no countdown, the card says "No rest" and names the partner.
@@ -439,21 +471,21 @@ function startRest(s,name){
   restNx.innerHTML=straight?`Superset: straight to ${esc(next.name)}, ${set}`:`Next: ${esc(next.name)}${next.ss?` <span class="tag">${next.ss}</span>`:''}, ${set}`;
   restTips.innerHTML=(TIPS[next.name]||[]).map(t=>`<li>${esc(t)}</li>`).join('');
   restLen=sec*1000;restEnd=Date.now()+restLen;
-  rest.hidden=false;document.body.classList.add('resting');
+  rest.classList.add('show');document.body.classList.add('resting');
   clearInterval(tick);tick=setInterval(drawRest,250);drawRest();
 }
 function drawRest(){
   const left=Math.max(0,restEnd-Date.now()),sec=Math.ceil(left/1000);
   restClock.textContent=left?`${sec/60|0}:${String(sec%60).padStart(2,'0')}`:straight?'No rest':'Go';
-  restBar.style.width=(restLen?left/restLen*100:0)+'%';
+  restBar.style.transform=`scaleX(${restLen?left/restLen:0})`;
   rest.classList.toggle('go',!left);
   if(!left)clearInterval(tick);
 }
-function stopRest(){clearInterval(tick);rest.hidden=true;document.body.classList.remove('resting')}
+function stopRest(){clearInterval(tick);rest.classList.remove('show');document.body.classList.remove('resting')}
 function toggleHist(h){
   const card=h.closest('.ex'),box=card.querySelector('.hist'),name=card.dataset.ex;
   if(!box.hidden){box.hidden=true;return}
-  const rows=db.sessions.filter(s=>s!==cur&&s.ex[name]?.some(done)).sort(byDate).slice(0,8).map(s=>`${s.date}  ${fmt(s.ex[name].filter(done))}`);
+  const rows=db.sessions.filter(s=>s!==cur&&s.ex[name]?.some(done)).sort(byDate).slice(0,8).map(s=>`${niceDate(s.date)}: ${fmt(s.ex[name].filter(done))}`);
   box.textContent=rows.join('\n')||'No earlier sessions.';box.hidden=false;
 }
 
@@ -466,8 +498,9 @@ app.addEventListener('click',ev=>{
   if('home'in b.dataset)return home();
   if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
   if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
+  if(b.dataset.more){const y=scrollY;more[b.dataset.more]=!more[b.dataset.more];home();return scrollTo(0,y)}
   if('deload'in b.dataset){
-    if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again to start the deload week';return}
+    if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again';return}
     db.deload=today();save();return home();
   }
   if(!cur)return;
@@ -484,7 +517,7 @@ app.addEventListener('click',ev=>{
   }
   if(b.dataset.rir!==undefined){
     const v=+b.dataset.rir,was=st.rir;st.rir=st.rir===v?null:v;
-    row.querySelectorAll('[data-rir]').forEach(x=>x.classList.toggle('on',+x.dataset.rir===st.rir));
+    row.querySelectorAll('[data-rir]').forEach(x=>{const on=+x.dataset.rir===st.rir;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)});
     row.classList.toggle('done',st.rir!=null);
     if(st.rir!=null){cur.start??=Date.now();cur.last=Date.now();head()}
     save();markBests(row.closest('.ex'));
@@ -499,13 +532,15 @@ app.addEventListener('input',ev=>{
 });
 // The warm-up line follows set 1's weight.
 function markBests(card){
-  card.querySelectorAll('.set').forEach(row=>row.classList.toggle('best',best(cur,card.dataset.ex,+row.dataset.i)));
+  card.querySelectorAll('.set').forEach(row=>{const b=best(cur,card.dataset.ex,+row.dataset.i);row.classList.toggle('best',b);row.querySelector('.lbl').textContent=b?'Best':'RIR'});
 }
 function updWarmup(row,st){
   const box=row.closest('.ex').querySelector('.wu');
   if(!box||row.dataset.i!=='0')return;
   box.textContent=warmup(st.w);box.hidden=!box.textContent;
 }
+// Safari on iPhone shows :active presses only when the page listens for touchstart.
+document.addEventListener('touchstart',()=>{},{passive:true});
 back.onclick=home;
 document.getElementById('skip').onclick=stopRest;
 exp.onclick=async()=>{
@@ -552,9 +587,11 @@ function runTests(){
   noSave=true;const real=db;
   const D=n=>addDays(today(),-n);
   db={sessions:[{date:D(0),bw:80},{date:D(2),bw:81},{date:D(8),bw:80.2}]};
-  t('bodyweight: 7-day average against the week before',bwLine()==='Bodyweight 80.5 kg, +0.3 on the week before');
+  t('bodyweight: 7-day average against the week before',bwInfo().kg==='80.5 kg'&&bwInfo().note==='+0.3 on the week before');
   db={sessions:[{date:D(8),bw:80.2}]};
-  t('bodyweight: nothing without a weigh-in this week',bwLine()==='');
+  t('bodyweight: nothing without a weigh-in this week',bwInfo()===null);
+  t('dates in plain words, the year only when it is not this year',niceDate('2025-01-02')==='Thu 2 Jan 2025'&&!/,|\d{4}/.test(niceDate(today())));
+  t('sets in plain words',fmt([S(8,1),S(8,1),S(7,0)])==='60 kg × 8, 8, 7 · RIR 1, 1, 0'&&fmt([S(8,1,60),S(6,4,62.5)])==='60 kg × 8, 62.5 kg × 6 · RIR 1, 4+');
   db={sessions:[{date:D(34)}]};
   t('deload: week 5 is not due',deloadInfo().week===5&&!deloadInfo().due);
   db={sessions:[{date:D(35)}]};
@@ -594,8 +631,13 @@ function runTests(){
   t('drop badge says how much',app.querySelector('.badge')?.textContent==='↓ below range twice: −7.5 kg');
   db=db0;session(u);
   t('up badge says +2.5 kg',app.querySelector('.badge')?.textContent==='↑ hit the top last time: +2.5 kg');
-  app.querySelector('.set [data-rir="1"]').click();
-  t('new best mark shows when a heavier set is rated',app.querySelector('.set').classList.contains('best'));
+  t('a session opens on the first lift',app.firstElementChild.classList.contains('ex')&&app.querySelector('.last').textContent.startsWith('Last time, '));
+  const row0=app.querySelector('.set'),h0=row0.offsetHeight;
+  row0.querySelector('[data-rir="1"]').click();
+  t('new best mark shows when a heavier set is rated',row0.classList.contains('best')&&row0.querySelector('.lbl').textContent==='Best');
+  t('rating a set keeps the row height',row0.offsetHeight===h0&&row0.classList.contains('done'));
+  t('the chosen RIR is marked for VoiceOver',row0.querySelector('[data-rir="1"]').getAttribute('aria-pressed')==='true'&&row0.querySelector('[data-rir="0"]').getAttribute('aria-pressed')==='false');
+  t('the rest card comes up after a set',rest.classList.contains('show'));
   const BP='Barbell Bench Press',mk=(id,date,w=60,r=8)=>({id,date,name:'Upper A',ex:{[BP]:[S(r,1,w)]}});
   db={sessions:[mk('p1','2026-01-01')]};
   const cs={id:'c',date:'2026-01-05',name:'Upper A',ex:{[BP]:[S(9,1,60),S(9,1,60),S(8,1,62.5),S(9,1,55),{w:70,r:9,rir:null}]}};
@@ -621,6 +663,15 @@ function runTests(){
   function g2(n){return trophies().find(x=>x.name===n)}
   db={sessions:[mk('d0','2026-01-01'),{...mk('d1','2026-01-20'),deload:true},{...mk('d2','2026-02-25'),deload:true}]};
   t('trophy: deload only counts after 4 weeks of training',g2('Deload week on time').got?.id==='d2');
+  db={sessions:[mk('p1','2026-01-01',90,5)]};
+  t('trophies: earned first, then the 4 closest to earn',trShown(trophies()).map(x=>x.name).join('|')==='First session|Bench 60 kg × 5|Deload week on time|Bench 100 kg × 5|10 sessions|25 sessions'&&trShown(trophies(),true).length===19);
+  db={sessions:Array.from({length:8},(_,i)=>mk('h'+i,addDays(today(),-2*i)))};home();
+  t('home: tiles for the week, the run and the total',[...app.querySelectorAll('.tile span')].map(x=>x.textContent).join()==='This week,Full weeks in a row,Lifted, all time');
+  t('home: history shows the last 6',app.querySelectorAll('.row').length===6&&app.querySelector('[data-more=hist]')?.textContent==='Show all 8');
+  app.querySelector('[data-more=hist]').click();
+  t('home: Show all lists every session',app.querySelectorAll('.row').length===8);
+  more.hist=false;startRest(u,'Barbell Bench Press');document.getElementById('skip').click();
+  t('Skip sends the rest card away',!rest.classList.contains('show'));
   const sm={id:'s',date:today(),name:'Upper A',ex:{[BP]:[S(8,1,62.5),S(8,1,62.5),S(8,1,62.5)]}};
   db={sessions:[mk('p1','2026-01-01'),sm]};
   const sum=summary(sm);
@@ -657,7 +708,7 @@ function runTests(){
   t('next line shows the superset tag',restNx.textContent==='Next: Incline DB Press A1, set 2 of 4'&&restClock.textContent!=='No rest');
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
-  startRest(u,'Barbell Bench Press');
+  db=db0;session(u);startRest(u,'Barbell Bench Press');
   const bh=back.hidden;stale=true;back.hidden=false;
   t('update waits while a session is open',!reloadOk());
   back.hidden=true;

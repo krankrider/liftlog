@@ -10,12 +10,16 @@ personal account. Read `CLAUDE.md` before changing anything.
 ## What it does
 
 - Home shows "Start <next session>" based on the last logged session (Upper A → Lower A →
-  Upper B → Lower B), the other three sessions, a month calendar, and the history list.
+  Upper B → Lower B), the other three sessions, number tiles, a month calendar, trophies and
+  the history list. History shows the last 6 sessions, with "Show all" for the rest. Dates
+  read "Wed 7 Oct", with the year only when it is not this year.
 - The calendar starts on Monday. A trained day is a white circle with the session's letters
   under it (UA = Upper A); tapping it opens that session. Today has a ring. ‹ › change month.
 - A session is the program's exercise list with one row per set: weight stepper (±2.5 kg),
   reps stepper (±1), both open the numeric keypad when tapped, and a row of RIR chips 0–4+.
-  Tapping a chip marks the set done. An unrated set is not counted anywhere.
+  Tapping a chip marks the set done and fills its number white. An unrated set is not counted
+  anywhere. Date and bodyweight sit at the bottom with the notes, so a session opens on the
+  first lift. The line under each exercise reads "Last time, Thu 1 Oct: 70 kg × 8, 8, 8 · RIR 1, 1, 1".
 - Weight and reps are prefilled from the last time that exercise was done, so a repeat set is
   one tap. If every set hit the top of the rep range last time, the weight prefills 2.5 kg
   heavier, reps at the bottom of the range, and the badge says "+2.5 kg". The same happens
@@ -25,15 +29,18 @@ personal account. Read `CLAUDE.md` before changing anything.
   prefills about 10% lighter (rounded to 2.5 kg, at least 2.5 off), reps at the bottom, and
   the badge says how much. Deload sessions keep the weight and show the old "add weight" text.
 - A rated set that beats the exercise's record (more reps than ever at that weight or heavier,
-  counting earlier sets today) shows a "New best" mark. Never on the first time an exercise is
-  logged, or every set would be one.
+  counting earlier sets today) gets the trophy ring on its number and "Best" in place of the
+  RIR label, so the row keeps its height. Never on the first time an exercise is logged, or
+  every set would be one.
 - Done shows a summary of today's session: minutes, new bests, which exercises get +2.5 kg next
   time, how the week stands, and any trophy this session earned. Earlier sessions and empty
   ones go straight home.
-- Home shows this week's sessions out of 4 and full weeks in a row (Monday to Sunday, all 4
-  sessions; deload weeks count when trained; this week counts once it is full).
+- Home tiles: this week's sessions out of 4, full weeks in a row (Monday to Sunday, all 4
+  sessions; deload weeks count when trained; this week counts once it is full), bodyweight
+  and total lifted.
 - Trophies on home, black-and-white medals, solid when earned with the date, outlined with
-  what is left when not: 1/10/25/50/100 sessions; 4/12/26 full weeks in a row; 1/10/25
+  what is left when not. Home shows the earned ones and the 4 closest to earn; "Show all"
+  lists the rest. The trophies: 1/10/25/50/100 sessions; 4/12/26 full weeks in a row; 1/10/25
   weight jumps earned (an exercise that hit the add-weight rule); plate clubs for 5+ reps
   (bench 60/100, squat 100/140, trap bar 140/180, overhead press 60); a deload week taken
   after at least 4 weeks of training. All worked out from history, nothing extra saved.
@@ -46,13 +53,14 @@ personal account. Read `CLAUDE.md` before changing anything.
   PROGRAM). A1 of a superset goes straight to A2: the card says "No rest" and "Superset: straight
   to ..." instead of counting down. That only happens while A2 is behind A1, so logging A2 first
   still gives a normal rest. While it runs it shows the next exercise (with its superset tag) and
-  set, with that exercise's cues from the PDF's exercise guide (the TIPS table). At zero it turns
+  set, with that exercise's cues from the PDF's exercise guide (the TIPS table). It slides up
+  from the bottom and leaves the same way (a fade with Reduce Motion on). At zero it eases to
   white and says Go. Skip closes it. Re-rating a set does not restart it.
 - Tapping the "last ..." line under an exercise opens its last 8 sessions.
 - Bodyweight and a notes field per session. Everything autosaves on each tap.
-- Home shows the average bodyweight of the last 7 days and the change on the 7 days before.
+- The bodyweight tile is the average of the last 7 days and the change on the 7 days before.
 - Deload: home counts the weeks since you started or since the last deload, and says
-  "Deload week due" from week 6. "Start deload week" (two taps) makes the next 7 days a deload:
+  "Deload week due" from week 6. "Start deload" on that line (two taps) makes the next 7 days a deload:
   new sessions get about 60% of the sets (3 → 2, 4 → 2, 2 → 1) at the same weights, the header
   says Deload, and those sessions are left out of the badges and prefill.
 - Delete a session by swiping its history row left and tapping Delete (no confirm, no undo,
@@ -60,7 +68,9 @@ personal account. Read `CLAUDE.md` before changing anything.
 - Black-and-white Liquid Glass look, following Apple's guidance: glass only on the floating
   controls (back button, Export, Start, Done, the chosen RIR), content on plain dark cards.
   No colour anywhere; the add-weight badge is solid white, the below-range one outlined. Safari cannot
-  bend light on a web page, so the glass is blur, tint and highlights.
+  bend light on a web page, so the glass is blur, tint and highlights. Presses show at once
+  (Safari on iPhone needs a touchstart listener for that), and the steppers and RIR chips
+  carry VoiceOver labels.
 - Export sends a JSON backup to the iOS share sheet. Import merges a backup by session id.
 - Installs to the home screen, runs full screen, works offline after the first load, and
   updates itself on the home screen after a push.
