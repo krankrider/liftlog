@@ -54,7 +54,9 @@ personal account. Read `CLAUDE.md` before changing anything.
   (bench 60/100, squat 100/140, trap bar 140/180, overhead press 60); a deload week taken
   after at least 4 weeks of training. All worked out from history, nothing extra saved.
 - The first lift of each session shows its warm-up under the "last ..." line, worked out from
-  set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
+  set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg. The line keeps its space
+  when empty, so set 1 never moves while you change its weight (a jump there also made iPhone
+  Safari redraw only part of the new number).
 - In a session the header shows the minutes since the first rated set (today only). It stops
   at the last rated set once nothing has been rated for 30 minutes.
 - Rating a set starts a rest timer at the bottom of the screen: first heavy compound 3 min,

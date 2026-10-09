@@ -72,6 +72,7 @@ h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
 .last{color:var(--mut);font-size:14px;margin:4px 0 10px;font-variant-numeric:tabular-nums}
 .badge{display:table;margin-top:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px}
 .up{color:#000;background:#fff}.down{color:#fff;box-shadow:inset 0 0 0 1px var(--mut)}
+.wu:empty::before{content:"\00a0"}
 .hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
 /* A done set's number fills white, like a trained day on the calendar. A new best adds the trophy ring and says
    Best where RIR was, so the row never grows and the sets below never move. */
@@ -498,7 +499,7 @@ function exCard(s,e){
   return`<div class="card ex" data-ex="${esc(e.name)}">
   <h3><span>${esc(e.name)}${e.ss?` <span class="tag">${e.ss}</span>`:''}</span><span class="rx">${setsFor(s,e)} × ${e.lo}–${e.hi} @ ${e.rir}</span></h3>
   <div class="last" data-hist>${prev?`Last time, ${niceDate(prev.date)}: ${fmt(ps)}`:'No history yet'}${badge}</div><div class="hist" hidden></div>
-  ${wu==null?'':`<div class="last wu"${wu?'':' hidden'}>${wu}</div>`}
+  ${wu==null?'':`<div class="last wu">${wu}</div>`}
   ${sets.map((st,i)=>setRow(st,i,best(s,e.name,i))).join('')}</div>`;
 }
 function setRow(st,i,nb){
@@ -577,14 +578,15 @@ app.addEventListener('input',ev=>{
   if(el.dataset.f){cur[el.dataset.f]=el.type==='number'?num(el.value):el.value;save();return}
   if(el.dataset.k){const row=el.closest('.set'),st=cur.ex[row.closest('.ex').dataset.ex][+row.dataset.i];st[el.dataset.k]=num(el.value);save();updWarmup(row,st);markBests(row.closest('.ex'))}
 });
-// The warm-up line follows set 1's weight.
 function markBests(card){
   card.querySelectorAll('.set').forEach(row=>{const b=best(cur,card.dataset.ex,+row.dataset.i);row.classList.toggle('best',b);row.querySelector('.lbl').textContent=b?'Best':'RIR'});
 }
+// The warm-up line follows set 1's weight. It keeps its space when empty (CSS), so set 1 never moves under the
+// thumb while its weight changes. A jump there also made iPhone Safari redraw only part of the new weight.
 function updWarmup(row,st){
   const box=row.closest('.ex').querySelector('.wu');
   if(!box||row.dataset.i!=='0')return;
-  box.textContent=warmup(st.w);box.hidden=!box.textContent;
+  box.textContent=warmup(st.w);
 }
 // Safari on iPhone shows :active presses only when the page listens for touchstart.
 document.addEventListener('touchstart',()=>{},{passive:true});
@@ -677,6 +679,10 @@ function runTests(){
   const press=s=>lc.querySelector(`.set [data-step="w:${s}"]`).click(),seq=[];
   for(const s of[1,1,-1,-1])press(s),seq.push(lw.value);
   t('dumbbell stepper walks the rack',seq.join()==='10,12.5,10,9'&&ls.ex[LR][0].w===9);
+  const lb=newSession('Lower B');lb.ex['Trap Bar Deadlift'][0].w=20;session(lb);
+  const r1=app.querySelector('.set'),y1=r1.getBoundingClientRect().top+scrollY,wuEmpty=app.querySelector('.wu').textContent==='';
+  r1.querySelector('[data-step="w:1"]').click();
+  t('set 1 stays put when the warm-up line fills in',wuEmpty&&app.querySelector('.wu').textContent==='Warm-up: bar ×10'&&r1.getBoundingClientRect().top+scrollY===y1);
   t('renamed lifts keep their history',(()=>{const d=migrate({sessions:[{ex:{'Leg Press / Walking Lunge':[S(10)]}},{ex:{'Leg Press':[S(11)],'Leg Press / Walking Lunge':[S(9)]}}]});return d.sessions[0].ex['Leg Press']?.[0].r===10&&!('Leg Press / Walking Lunge'in d.sessions[0].ex)&&d.sessions[1].ex['Leg Press'][0].r===11})());
   const B=(id,date,w,r)=>({id,date,name:'Upper A',ex:{'Barbell Bench Press':[S(6,1,w),S(5,1,w),S(r,1,w)]}});
   db={sessions:[B('m1','2026-01-01',80,4)]};
