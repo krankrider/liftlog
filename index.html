@@ -268,6 +268,10 @@ function mins(s,now){
 }
 
 function nextName(){const last=db.sessions.slice().sort(byDate)[0],n=names();return last?n[(n.indexOf(last.name)+1)%n.length]:n[0]}
+// A session started today stays open until Done: home offers to continue it, and the app opens it at launch
+// while its clock still runs (a set rated in the last 30 minutes), since iOS often closes the app in the background.
+function running(){return db.sessions.filter(s=>s.date===today()&&!s.fin&&trained(s)).sort(byDate)[0]||null}
+function launch(){const r=running();return r&&Date.now()-(r.last||0)<18e5?r:null}
 
 // New best: a rated set with more reps than ever at that weight or heavier, counting earlier sessions and
 // earlier sets this session. Not on the first time an exercise is logged, or every set would be one.
@@ -400,13 +404,15 @@ const more={tr:false,hist:false},HIST=6;
 function home(){
   if(stale)return location.reload();
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
-  const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwInfo(),dl=deloadInfo(),any=all.some(trained);
+  // A session left with nothing rated, no bodyweight and no note was a mistap or a look ahead: it goes.
+  const n0=db.sessions.length;db.sessions=db.sessions.filter(s=>trained(s)||s.bw!=null||s.note);if(db.sessions.length<n0)save();
+  const run=running(),next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwInfo(),dl=deloadInfo(),any=all.some(trained);
   const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
   const wk=weeks()[weekOf(today())]?.length||0;
   const tiles=[any&&[`${wk} of ${FULL}`,'This week'],any&&[streak(),'Full weeks in a row'],bw&&[bw.kg,bw.note?`Bodyweight, ${bw.note}`:'Bodyweight'],any&&[kgText(lifted(all)),'Lifted, all time']].filter(x=>x);
   const tr=trophies(),trList=trShown(tr,more.tr),hist=more.hist?all:all.slice(0,HIST);
-  app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
-  <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
+  app.innerHTML=`<h1>Lift log</h1>${run?`<button class="big tint" data-open="${run.id}">Continue ${esc(run.name)}</button>`:`<button class="big tint" data-start="${next}">Start ${next}</button>`}
+  <div class="grid">${names().filter(n=>n!==(run?run.name:next)).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
   ${tiles.length?`<div class="tiles">${tiles.map(([n,l])=>`<div class="tile"><b>${n}</b><span>${esc(l)}</span></div>`).join('')}</div>`:''}
   ${dl?`<div class="card dl"><span>${dlText}</span>${dl.on?'':'<button class="pill" data-deload>Start deload</button>'}</div>`:''}
   <h2>Calendar</h2>${calHTML(calY,calM)}
@@ -418,6 +424,7 @@ function home(){
 // Done: a summary of today's session before home. Earlier sessions and empty ones go straight home.
 function finish(s){
   if(s.date!==today()||!trained(s))return home();
+  s.fin=true;save();
   const m=mins(s,Date.now()),{lines,tr}=summary(s);
   cur=null;hdr.textContent='';back.hidden=false;exp.hidden=true;stopRest();clearInterval(clock);
   app.innerHTML=`<h1>${esc(s.name)} done</h1><div class="card form">${(m!=null?[`${m} min`]:[]).concat(lines).map(l=>`<div class="fr">${esc(l)}</div>`).join('')}</div>
@@ -708,6 +715,17 @@ function runTests(){
   t('next line shows the superset tag',restNx.textContent==='Next: Incline DB Press A1, set 2 of 4'&&restClock.textContent!=='No rest');
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
+  const R=(id,last)=>({...mk(id,today()),last});
+  db={sessions:[mk('r0',D(1)),R('r1',Date.now()-5*6e4)]};
+  t('a session started today stays open, and opens at launch',running()?.id==='r1'&&launch()?.id==='r1');
+  db.sessions[1].last=Date.now()-40*6e4;
+  t('it opens at launch only within 30 min of the last set',running()?.id==='r1'&&!launch());
+  home();const big=app.querySelector('.big');
+  t('home says Continue for it',big.textContent==='Continue Upper A'&&big.dataset.open==='r1'&&![...app.querySelectorAll('.grid button')].some(b=>b.textContent==='Upper A'));
+  finish(db.sessions[1]);
+  t('Done closes it',db.sessions[1].fin&&!running());
+  db={sessions:[{id:'e1',date:today(),name:'Upper A',bw:null,note:'',ex:{[BP]:[{w:60,r:8,rir:null}]}},{id:'e2',date:D(1),name:'Lower A',bw:80,note:'',ex:{}},{id:'e3',date:D(2),name:'Upper B',bw:null,note:'sore',ex:{}},mk('e4',D(3))]};home();
+  t('a session left with nothing in it is deleted',db.sessions.map(s=>s.id).join()==='e2,e3,e4'&&app.querySelector('.big').textContent==='Start Upper B');
   db=db0;session(u);startRest(u,'Barbell Bench Press');
   const bh=back.hidden;stale=true;back.hidden=false;
   t('update waits while a session is open',!reloadOk());
@@ -718,7 +736,7 @@ function runTests(){
   const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
   db=real;
 }
-location.hash==='#test'?runTests():home();
+if(location.hash==='#test')runTests();else{const r=launch();r?session(r):home()}
 </script>
 </body>
 </html>

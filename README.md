@@ -13,6 +13,11 @@ personal account. Read `CLAUDE.md` before changing anything.
   Upper B → Lower B), the other three sessions, number tiles, a month calendar, trophies and
   the history list. History shows the last 6 sessions, with "Show all" for the rest. Dates
   read "Wed 7 Oct", with the year only when it is not this year.
+- A session started today stays open until Done: the big button says "Continue Upper A" instead
+  of "Start <next>". If a set was rated in the last 30 minutes, the app opens straight on that
+  session, because iOS often closes a home-screen app in the background mid-workout.
+- A session left with nothing rated, no bodyweight and no note is deleted when home shows, so a
+  mistapped Start or a look at the weights leaves no trace on the calendar or the rotation.
 - The calendar starts on Monday. A trained day is a white circle with the session's letters
   under it (UA = Upper A); tapping it opens that session. Today has a ring. ‹ › change month.
 - A session is the program's exercise list with one row per set: weight stepper (±2.5 kg),
@@ -144,6 +149,7 @@ localStorage key `liftlog`:
 
 - `rir` null means the set was not done. `w`/`r` null means not entered.
 - `start` and `last` (ms timestamps) are the first and latest rated set, for the clock.
+- `fin: true` marks a session closed with Done, so home stops offering to continue it.
 - `deload: true` marks a deload session. Top-level `deload` is the first day of the latest
   deload week. Import keeps the later of the two.
 - History lookup is by exact exercise name. Renaming an exercise in PROGRAM orphans its
