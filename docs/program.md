@@ -1,10 +1,10 @@
-# Program v5 — Max-Efficiency Hypertrophy, Upper/Lower, 4 days
+# Program v6 — Max-Efficiency Hypertrophy, Upper/Lower, 4 days
 
 Goal: hypertrophy and looks. Priorities: chest, side delts, traps, and from v4 also lats for
 the V-taper. Built on Andy Galpin's principles: minimum effective dose, training close to
 failure, rep-range variety. The v3 PDF next to this file has the exercise guide with cues
 and search terms; the session tables below supersede its tables. v4 was agreed on 2026-10-01,
-v5 on 2026-10-09.
+v5 and v6 on 2026-10-09.
 
 Week: Mon Upper A · Tue Lower A · Wed rest · Thu Upper B · Fri Lower B · Sat and Sun rest.
 Days can shift. Keep at least one rest day between the two upper sessions.
@@ -19,9 +19,10 @@ Days can shift. Keep at least one rest day between the two upper sessions.
 - **Progression.** Double progression: add reps inside the range. When every set hits the top
   of the range, add weight next time and restart at the bottom. Also add weight when every set
   was RIR 3 or easier: the weight is too light to count as a hard set. The app applies these
-  rules itself: it fills in +2.5 kg and the bottom of the range. Below the range two sessions
-  in a row at the same weight, it fills in about 10% less (rounded to 2.5 kg). One bad session
-  only gets a badge. Deload weeks keep the weight.
+  rules itself: it fills in one step heavier and the bottom of the range. A step is 2.5 kg on
+  plates (barbells, leg press, belt) and the next dumbbell on dumbbell lifts (1 kg up to 10 kg,
+  then 2.5 kg). Below the range two sessions in a row at the same weight, it fills in about 10%
+  less, on a weight that exists. One bad session only gets a badge. Deload weeks keep the weight.
 - **Deload.** Every 5–6 weeks cut volume about 40% for one week, or sooner when reps stall two
   weeks running or joints complain. In the first blocks a fixed schedule is premature.
   In the app, a deload week keeps the weights and cuts sets to about 60% (3 → 2, 4 → 2, 2 → 1).
@@ -48,7 +49,7 @@ exercise; the pair rests after its second half.
 |---|---|---|---|---|
 | Barbell Bench Press | 3 × 5–8 | 1–2 | 3 min | ramp-up here |
 | Incline DB Press | 4 × 8–12 | 1–2 | — | A1 |
-| Weighted Pull-up / Lat Pulldown | 4 × 8–10 | 1–2 | 2 min | A2, paired with incline |
+| Weighted Pull-up | 4 × 8–10 | 1–2 | 2 min | A2, paired with incline; no added weight until 4 × 10 |
 | Lateral Raise (DB) | 4 × 15–20 | 0–1 | 90 s | |
 | Face Pull | 3 × 15–20 | 1–2 | 90 s | |
 | Incline DB Curl | 3 × 10–15 | 0–1 | — | B1 |
@@ -60,7 +61,7 @@ exercise; the pair rests after its second half.
 |---|---|---|---|---|
 | Back Squat | 3 × 5–8 | 1–2 | 3 min | ramp-up here |
 | Romanian Deadlift | 3 × 8–10 | 1–2 | 2 min | |
-| Leg Press / Walking Lunge | 3 × 10–12 | 1–2 | 2 min | |
+| Leg Press | 3 × 10–12 | 1–2 | 2 min | |
 | Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
 | Cable Crunch | 3 × 10–15 | 0–1 | 90 s | A2 |
 
@@ -70,7 +71,7 @@ exercise; the pair rests after its second half.
 |---|---|---|---|---|
 | Overhead Press | 3 × 6–10 | 1–2 | 3 min | ramp-up here |
 | Barbell Shrug | 4 × 10–15 | 0–1 | 2 min | traps priority, second while fresh |
-| Weighted Dip / Incline Press | 3 × 8–12 | 1–2 | — | A1; incline if upper chest is the look wanted |
+| Incline Barbell Press | 3 × 8–12 | 1–2 | — | A1 |
 | Barbell Row | 3 × 8–12 | 1–2 | 2 min | A2 |
 | Lat Pulldown | 3 × 12–15 | 1–2 | 2 min | new in v4 |
 | Cable Lateral Raise | 4 × 15–20 | 0–1 | 90 s | |
@@ -88,7 +89,7 @@ exercise; the pair rests after its second half.
 | Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
 | Cable Crunch | 3 × 10–15 | 0–1 | 90 s | A2 |
 
-## Weekly direct sets, v3 → v4 → v5
+## Weekly direct sets, v3 → v4 → v5 (v6 unchanged)
 
 | Muscle | v3 | v4 | v5 |
 |---|---|---|---|
@@ -103,6 +104,23 @@ exercise; the pair rests after its second half.
 | Quads | 9 | 9 | 9 |
 | Hamstrings | 9 | 9 | 9 |
 | Calves | 6 | 6 | 6 |
+
+## Changes from v5 and why
+
+1. **One lift per slot.** "Pull-up / pulldown", "leg press / lunge" and "dip / incline" each
+   logged two lifts with very different weights under one name, which mixed up the filled-in
+   weights and the bests. Each slot now names one lift.
+2. **Weighted Pull-up on Upper A.** Upper B already has the pulldown at 12–15, so the lats get a
+   heavy lift and a light one, two different movements. Belt plates go up in clean 2.5 kg steps,
+   unlike the cable stacks. Log no added weight as 0 kg; the app fills in +2.5 kg once all four
+   sets reach 10. The pulldowns logged here before stay saved under the old name.
+3. **Leg Press on Lower A.** Lower B's split squat already covers the one-leg pattern. After squats
+   and RDLs a machine can be taken close to failure safely; on lunges, balance and grip give out
+   first. Same machine as the calf raises. Its history carries over.
+4. **Incline Barbell Press on Upper B.** Upper chest fills out the chest under the collarbone. Flat
+   bench on Upper A already covers what dips mostly train, and dips were very hard even without
+   weight. Barbell, since Upper A already has incline dumbbells in the same rep range. The dips
+   logged here before stay saved under the old name.
 
 ## Changes from v4 and why
 

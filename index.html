@@ -158,7 +158,7 @@ body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 <section id="rest" aria-live="polite"><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
-// Program v5 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
+// Program v6 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
 // Rest per the v3 PDF: first heavy compound 3 min, other compounds 2 min, isolation 90 s.
 // A superset pair rests only after its second exercise; A1 goes straight into A2.
 function X(name,sets,lo,hi,rir,rest,ss){return{name,sets,lo,hi,rir,rest,ss}}
@@ -166,7 +166,7 @@ const PROGRAM={
 "Upper A":[
  X("Barbell Bench Press",3,5,8,"1-2",180),
  X("Incline DB Press",4,8,12,"1-2",120,"A1"),
- X("Weighted Pull-up / Lat Pulldown",4,8,10,"1-2",120,"A2"),
+ X("Weighted Pull-up",4,8,10,"1-2",120,"A2"),
  X("Lateral Raise (DB)",4,15,20,"0-1",90),
  X("Face Pull",3,15,20,"1-2",90),
  X("Incline DB Curl",3,10,15,"0-1",90,"B1"),
@@ -174,13 +174,13 @@ const PROGRAM={
 "Lower A":[
  X("Back Squat",3,5,8,"1-2",180),
  X("Romanian Deadlift",3,8,10,"1-2",120),
- X("Leg Press / Walking Lunge",3,10,12,"1-2",120),
+ X("Leg Press",3,10,12,"1-2",120),
  X("Calf Raise",3,12,15,"0-1",90,"A1"),
  X("Cable Crunch",3,10,15,"0-1",90,"A2")],
 "Upper B":[
  X("Overhead Press",3,6,10,"1-2",180),
  X("Barbell Shrug",4,10,15,"0-1",120),
- X("Weighted Dip / Incline Press",3,8,12,"1-2",120,"A1"),
+ X("Incline Barbell Press",3,8,12,"1-2",120,"A1"),
  X("Barbell Row",3,8,12,"1-2",120,"A2"),
  X("Lat Pulldown",3,12,15,"1-2",120),
  X("Cable Lateral Raise",4,15,20,"0-1",90),
@@ -195,23 +195,23 @@ const PROGRAM={
  X("Cable Crunch",3,10,15,"0-1",90,"A2")]};
 
 // Cues shown during rest, one idea per line. From the v3 PDF's exercise guide; Lat Pulldown and the
-// trap-bar lifts are v4 additions and Cable Crunch a v5 addition, none with a PDF entry.
+// trap-bar lifts are v4 additions, Cable Crunch a v5 addition and Leg Press and Incline Barbell Press v6, none with a PDF entry.
 const TIPS={
 "Barbell Bench Press":["Feet planted, slight arch.","Shoulder blades pinched.","Lower over the chest in 2–3 s, press up."],
 "Incline DB Press":["Bench at 30–45°.","Press the dumbbells from shoulder level.","Aim for the upper chest."],
-"Weighted Pull-up / Lat Pulldown":["Hang from the bar, pull your chin over it.","Add a belt with weight when bodyweight gets easy.","Or use the pulldown machine."],
+"Weighted Pull-up":["Hang from the bar, pull your chin over it.","Add a belt with weight when bodyweight gets easy."],
 "Lateral Raise (DB)":["Raise your arms out to shoulder height.","Slight bend in the elbows.","Light weight, control the way down."],
 "Face Pull":["Rope at face height.","Pull towards your face, elbows high.","Squeeze the rear delts."],
 "Incline DB Curl":["Sit back on a 45–60° bench, arms hanging behind you.","Curl up without moving the elbows.","The stretch at the bottom is the point."],
 "Overhead Cable Triceps Ext.":["Rope on a low cable, face away.","Elbows by your ears.","Lower behind the head, extend up."],
 "Back Squat":["Bar on the upper back.","Down until thighs are at least parallel.","Knees track over toes, drive up."],
 "Romanian Deadlift":["Bar at the hips, flat back, soft knees.","Push the hips back, lower to mid-shin.","The hamstring stretch is the point."],
-"Leg Press / Walking Lunge":["Leg press: feet shoulder-width, push the platform away.","Lunge: step forward holding dumbbells."],
+"Leg Press":["Feet shoulder-width on the platform.","Lower slowly, lower back stays on the pad.","Push the platform away."],
 "Calf Raise":["Stand on an edge, rise onto your toes.","Pause at the top.","Lower below the edge for a full stretch."],
 "Cable Crunch":["Kneel facing a high cable, rope by your head.","Curl your chest towards your hips.","Round the back, hips stay still.","Pause at the bottom, let it up slowly."],
 "Overhead Press":["Bar at the collarbone.","Press straight up until the arms lock.","Squeeze the glutes, lower back neutral."],
 "Barbell Shrug":["Heavy bar at the hips.","Shrug straight up towards your ears.","Pause at the top, lower slowly. No rolling."],
-"Weighted Dip / Incline Press":["Dip: lower until upper arms are parallel to the floor.","Lean forward a little for chest.","Incline: bench at 30–45°, press from the shoulders."],
+"Incline Barbell Press":["Bench at 30–45°.","Lower the bar to the upper chest in 2–3 s.","Shoulder blades pinched, press up."],
 "Barbell Row":["Hinge to about 45°.","Pull to the lower ribs, elbows back.","Squeeze the shoulder blades. Don't jerk with the back."],
 "Lat Pulldown":["Grip a little wider than the shoulders.","Pull to the upper chest, elbows down.","Let it up slowly to a full stretch."],
 "Cable Lateral Raise":["One arm on a low cable.","Raise the arm out to the side.","Tension the whole way up and down."],
@@ -222,8 +222,14 @@ const TIPS={
 "Bulgarian Split Squat (per leg)":["Rear foot on a bench, dumbbells in hands.","Lower until the front thigh is parallel.","Push back up."],
 "Leg Curl":["Curl the pad towards your glutes with your heels.","Lower slowly."]};
 
+// Renamed exercises, old history key -> new, applied on load and on import so old backups keep working.
+// The v6 pull-up and incline slots are not here: what was logged under their old names was a pulldown and dips,
+// which stay saved under those names, as the neck work did in v5.
+const RENAMED={"Leg Press / Walking Lunge":"Leg Press"};
+function migrate(d){for(const s of d.sessions||[])for(const[a,b]of Object.entries(RENAMED))if(s.ex?.[a]&&!s.ex[b]){s.ex[b]=s.ex[a];delete s.ex[a]}return d}
+
 const KEY='liftlog';
-let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}'), cur=null, noSave=false;
+let db=migrate(JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}')), cur=null, noSave=false;
 const save=()=>{if(!noSave)localStorage.setItem(KEY,JSON.stringify(db))};
 const app=document.getElementById('app'), hdr=document.getElementById('hdr'), importFile=document.getElementById('importFile');
 const back=document.getElementById('homeBtn'), exp=document.getElementById('export');
@@ -334,7 +340,7 @@ function summary(s){
   const nb=list.reduce((n,e)=>n+(s.ex[e.name]||[]).filter((_,i)=>best(s,e.name,i)).length,0);
   if(nb)lines.push(nb===1?'1 new best':`${nb} new bests`);
   lines.push(`Total lifted: ${kgText(lifted([s]))}`);
-  if(!s.deload)for(const e of list){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')lines.push(`${e.name}: +2.5 kg next time`)}
+  if(!s.deload)for(const e of list){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy'){const w=s.ex[e.name].find(done).w;lines.push(`${e.name}: ${w==null?'add weight':upBy(e.name,w)} next time`)}}
   const wk=weeks()[weekOf(s.date)]?.length||0;
   lines.push(wk>=FULL?`Full week. ${streak()} in a row`:`This week: ${wk} of ${FULL}`);
   return{lines,tr:trophies().filter(t=>t.got?.id===s.id)};
@@ -363,10 +369,26 @@ function afterSet(s,name){
   for(const x of order){const n=at(x);if(n)return{rest:e.rest,next:n}}
   return{rest:e.rest,next:null};
 }
-// The weight the app fills in: +2.5 kg after an up or easy; about 10% less (rounded to 2.5, at least 2.5 off)
-// after a second session in a row below the range at the same weight ('drop'). Deload weeks keep the weight.
+// Weight steps. Plates go on in pairs (smallest 1.25 kg), so barbells, plate machines and the belt move 2.5 kg.
+// The gym's dumbbells go 1 to 10 kg by 1, then by 2.5; a dumbbell lift logs one dumbbell.
 const STEP=2.5,kg=x=>Math.round(x*100)/100;
-function dropW(w){let d=Math.round(w*.9/STEP)*STEP;if(d>=w)d=w-STEP;return Math.max(0,kg(d))}
+const DUMBBELLS=[1,2,3,4,5,6,7,8,9,10,...Array.from({length:16},(_,i)=>12.5+i*2.5)];
+const RACK={"Incline DB Press":DUMBBELLS,"Lateral Raise (DB)":DUMBBELLS,"Incline DB Curl":DUMBBELLS,"Bulgarian Split Squat (per leg)":DUMBBELLS};
+// One step heavier (dir 1) or lighter (-1). Past the heaviest dumbbell it moves 2.5 kg.
+function stepW(name,w,dir){
+  const r=RACK[name];w=w??0;
+  if(!r)return Math.max(0,kg(w+dir*STEP));
+  return dir>0?r.find(x=>x>w)??kg(w+STEP):r.filter(x=>x<w).pop()??0;
+}
+const upBy=(name,w)=>`+${kg(stepW(name,w,1)-w)} kg`;
+// The weight the app fills in: one step up after an up or easy; about 10% less, on a weight that exists and at
+// least one step down, after a second session in a row below the range at the same weight ('drop').
+// Deload weeks keep the weight.
+function dropW(w,name){
+  const r=RACK[name];
+  if(!r){let d=Math.round(w*.9/STEP)*STEP;if(d>=w)d=w-STEP;return Math.max(0,kg(d))}
+  return r.filter(x=>x<w).reduce((a,b)=>Math.abs(b-w*.9)<=Math.abs(a-w*.9)?b:a,0);
+}
 function plan(e,excludeId){
   const hist=db.sessions.filter(x=>x.id!==excludeId&&!x.deload&&x.ex[e.name]?.some(done)).sort(byDate);
   const sets=x=>x?x.ex[e.name].filter(done):[],top=x=>Math.max(...sets(x).map(st=>st.w??0));
@@ -374,13 +396,13 @@ function plan(e,excludeId){
   if(sug==='down'&&hist[1]&&suggest(e,sets(hist[1]))==='down'&&top(hist[0])===top(hist[1]))sug='drop';
   return{prev,ps,sug};
 }
-function nextW(w,sug){return w==null?w:sug==='up'||sug==='easy'?kg(w+STEP):sug==='drop'?dropW(w):w}
+function nextW(w,sug,name){return w==null?w:sug==='up'||sug==='easy'?stepW(name,w,1):sug==='drop'?dropW(w,name):w}
 function newSession(name){
   const s={id:Date.now().toString(36),date:today(),name,bw:null,note:'',ex:{}};
   if(deloadOn())s.deload=true;
   for(const e of PROGRAM[name]){
     const{ps,sug}=plan(e),move=!s.deload&&sug;
-    s.ex[e.name]=Array.from({length:setsFor(s,e)},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?(move?nextW(p.w,sug):p.w):null,r:p?(sug==='up'||sug==='easy'||move==='drop'?e.lo:p.r):null,rir:null}});
+    s.ex[e.name]=Array.from({length:setsFor(s,e)},(_,i)=>{const p=ps[i]||ps[ps.length-1];return{w:p?(move?nextW(p.w,sug,e.name):p.w):null,r:p?(sug==='up'||sug==='easy'||move==='drop'?e.lo:p.r):null,rir:null}});
   }
   db.sessions.push(s);save();return s;
 }
@@ -468,8 +490,8 @@ function markNext(nx,smooth){
 }
 function exCard(s,e){
   const sets=s.ex[e.name]??=Array.from({length:setsFor(s,e)},()=>({w:null,r:null,rir:null}));
-  const{prev,ps,sug}=plan(e,s.id),w=ps[0]?.w,off=w>0?kg(w-dropW(w)):0;
-  const add=s.deload||w==null?', add weight':': +2.5 kg';
+  const{prev,ps,sug}=plan(e,s.id),w=ps[0]?.w,off=w>0?kg(w-dropW(w,e.name)):0;
+  const add=s.deload||w==null?', add weight':`: ${upBy(e.name,w)}`;
   const badge=sug==='up'?` <span class="badge up">↑ hit the top last time${add}</span>`:sug==='easy'?` <span class="badge up">↑ every set felt easy${add}</span>`
    :sug==='drop'&&!s.deload?` <span class="badge down">↓ below range twice${off?`: −${off} kg`:''}</span>`:sug?' <span class="badge down">↓ below range last time</span>':'';
   const wu=e===PROGRAM[s.name][0]?warmup(sets[0]?.w):null;
@@ -481,7 +503,7 @@ function exCard(s,e){
 }
 function setRow(st,i,nb){
   return`<div class="set${done(st)?' done':''}${nb?' best':''}" data-i="${i}"><span class="n">${i+1}</span>
-  <div class="num w"><button data-step="w:-2.5" aria-label="Less weight">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w" aria-label="Weight, kg"><button data-step="w:2.5" aria-label="More weight">+</button></div>
+  <div class="num w"><button data-step="w:-1" aria-label="Less weight">−</button><input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${st.w??''}" data-k="w" aria-label="Weight, kg"><button data-step="w:1" aria-label="More weight">+</button></div>
   <div class="num r"><button data-step="r:-1" aria-label="One rep less">−</button><input type="number" inputmode="numeric" placeholder="reps" value="${st.r??''}" data-k="r" aria-label="Reps"><button data-step="r:1" aria-label="One rep more">+</button></div>
   <span class="lbl">${nb?'Best':'RIR'}</span><div class="rir" role="group" aria-label="Reps in reserve">${[0,1,2,3,4].map(v=>`<button data-rir="${v}" class="${st.rir===v?'on':''}" aria-pressed="${st.rir===v}">${v===4?'4+':v}</button>`).join('')}</div></div>`;
 }
@@ -537,7 +559,7 @@ app.addEventListener('click',ev=>{
   const row=b.closest('.set');if(!row)return;
   const name=row.closest('.ex').dataset.ex,st=cur.ex[name][+row.dataset.i];
   if(b.dataset.step){
-    const[k,d]=b.dataset.step.split(':'),v=Math.max(0,Math.round(((st[k]??0)+ +d)*100)/100);
+    const[k,d]=b.dataset.step.split(':'),v=k==='w'?stepW(name,st.w,+d):Math.max(0,(st.r??0)+ +d);
     st[k]=v;row.querySelector(`input[data-k=${k}]`).value=v;save();markBests(row.closest('.ex'));return updWarmup(row,st);
   }
   if(b.dataset.rir!==undefined){
@@ -575,7 +597,7 @@ exp.onclick=async()=>{
 };
 importFile.onchange=async()=>{
   const f=importFile.files[0];importFile.value='';if(!f)return;
-  try{const d=JSON.parse(await f.text()),have=new Set(db.sessions.map(s=>s.id));
+  try{const d=migrate(JSON.parse(await f.text())),have=new Set(db.sessions.map(s=>s.id));
     for(const s of d.sessions||[])if(!have.has(s.id))db.sessions.push(s);
     if(d.deload&&!(db.deload>=d.deload))db.deload=d.deload;
     save();home();hdr.textContent='Imported';}catch{hdr.textContent='Import failed'}
@@ -643,6 +665,19 @@ function runTests(){
   t('prefill reps at the bottom after easy',newSession('Upper B').ex['Overhead Press'].every(x=>x.w===42.5&&x.r===6));
   const db0=db;
   t('weight drop: 10% rounded to 2.5, at least 2.5',dropW(60)===55&&dropW(100)===90&&dropW(10)===7.5&&dropW(2.5)===0&&dropW(0)===0);
+  const LR='Lateral Raise (DB)',ups=w=>[stepW(LR,w,1),stepW(LR,w,-1)].join('/');
+  t('dumbbells: 1 kg steps to 10, then 2.5',ups(8)==='9/7'&&ups(10)==='12.5/9'&&ups(12.5)==='15/10'&&ups(11)==='12.5/10'&&ups(1)==='2/0'&&ups(null)==='1/0'&&ups(50)==='52.5/47.5');
+  t('plates: 2.5 kg steps',stepW('Barbell Bench Press',60,1)===62.5&&stepW('Leg Press',null,1)===2.5&&stepW('Barbell Bench Press',0,-1)===0);
+  t('dumbbell drop: about 10%, on a dumbbell that exists',dropW(12.5,LR)===10&&dropW(8,LR)===7&&dropW(3,LR)===2&&dropW(1,LR)===0&&dropW(25,LR)===22.5);
+  db={sessions:[{id:'l1',date:'2026-01-01',name:'Upper A',ex:{[LR]:[S(20,1,8),S(20,1,8),S(20,1,8),S(20,1,8)],'Incline DB Curl':[S(15,1,10),S(15,1,10),S(15,1,10)]}}]};
+  const ls=newSession('Upper A');
+  t('dumbbells: one dumbbell up after an up',ls.ex[LR].every(x=>x.w===9&&x.r===15)&&ls.ex['Incline DB Curl'].every(x=>x.w===12.5&&x.r===10));
+  session(ls);const lc=[...app.querySelectorAll('.ex')].find(c=>c.dataset.ex===LR),lw=lc.querySelector('.set input[data-k=w]');
+  t('dumbbell badge says how much',lc.querySelector('.badge').textContent==='↑ hit the top last time: +1 kg');
+  const press=s=>lc.querySelector(`.set [data-step="w:${s}"]`).click(),seq=[];
+  for(const s of[1,1,-1,-1])press(s),seq.push(lw.value);
+  t('dumbbell stepper walks the rack',seq.join()==='10,12.5,10,9'&&ls.ex[LR][0].w===9);
+  t('renamed lifts keep their history',(()=>{const d=migrate({sessions:[{ex:{'Leg Press / Walking Lunge':[S(10)]}},{ex:{'Leg Press':[S(11)],'Leg Press / Walking Lunge':[S(9)]}}]});return d.sessions[0].ex['Leg Press']?.[0].r===10&&!('Leg Press / Walking Lunge'in d.sessions[0].ex)&&d.sessions[1].ex['Leg Press'][0].r===11})());
   const B=(id,date,w,r)=>({id,date,name:'Upper A',ex:{'Barbell Bench Press':[S(6,1,w),S(5,1,w),S(r,1,w)]}});
   db={sessions:[B('m1','2026-01-01',80,4)]};
   t('one miss keeps the weight',newSession('Upper A').ex['Barbell Bench Press'].map(x=>x.w+'x'+x.r).join()==='80x6,80x5,80x4');
@@ -726,24 +761,24 @@ function runTests(){
   ua.ex['Barbell Bench Press'].forEach(x=>x.rir=1);
   t('last set moves to the next exercise',N(afterSet(ua,'Barbell Bench Press'))==='Incline DB Press 0 180');
   ua.ex['Incline DB Press'][0].rir=1;
-  t('A1 goes straight into A2',N(afterSet(ua,'Incline DB Press'))==='Weighted Pull-up / Lat Pulldown 0 0'&&afterSet(ua,'Incline DB Press').straight);
-  ua.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
-  t('A2 rests, then back to A1',N(afterSet(ua,'Weighted Pull-up / Lat Pulldown'))==='Incline DB Press 1 120'&&!afterSet(ua,'Weighted Pull-up / Lat Pulldown').straight);
-  const ub=blank('Upper A');ub.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;ub.ex['Incline DB Press'][0].rir=1;
+  t('A1 goes straight into A2',N(afterSet(ua,'Incline DB Press'))==='Weighted Pull-up 0 0'&&afterSet(ua,'Incline DB Press').straight);
+  ua.ex['Weighted Pull-up'][0].rir=1;
+  t('A2 rests, then back to A1',N(afterSet(ua,'Weighted Pull-up'))==='Incline DB Press 1 120'&&!afterSet(ua,'Weighted Pull-up').straight);
+  const ub=blank('Upper A');ub.ex['Weighted Pull-up'][0].rir=1;ub.ex['Incline DB Press'][0].rir=1;
   t('A1 logged after A2 rests instead',N(afterSet(ub,'Incline DB Press'))==='Incline DB Press 1 120');
   const uc=blank('Upper A');uc.ex['Incline DB Press'][0].rir=1;
   startRest(uc,'Incline DB Press');
-  t('superset card says No rest and names the partner',restClock.textContent==='No rest'&&restNx.textContent==='Superset: straight to Weighted Pull-up / Lat Pulldown, set 1 of 4');
-  uc.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
-  startRest(uc,'Weighted Pull-up / Lat Pulldown');
+  t('superset card says No rest and names the partner',restClock.textContent==='No rest'&&restNx.textContent==='Superset: straight to Weighted Pull-up, set 1 of 4');
+  uc.ex['Weighted Pull-up'][0].rir=1;
+  startRest(uc,'Weighted Pull-up');
   t('next line shows the superset tag',restNx.textContent==='Next: Incline DB Press A1, set 2 of 4'&&restClock.textContent!=='No rest');
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
   const un=blank('Upper A'),U=s=>{const n=upNext(s);return n&&n.name+' '+n.i};
   t('next set: the first lift on a fresh session',U(un)==='Barbell Bench Press 0');
   un.ex['Barbell Bench Press'].forEach(x=>x.rir=1);un.ex['Incline DB Press'][0].rir=1;
-  t('next set: reopening mid-superset lands on the half that is behind',U(un)==='Weighted Pull-up / Lat Pulldown 0');
-  un.ex['Weighted Pull-up / Lat Pulldown'][0].rir=1;
+  t('next set: reopening mid-superset lands on the half that is behind',U(un)==='Weighted Pull-up 0');
+  un.ex['Weighted Pull-up'][0].rir=1;
   t('next set: then back to A1',U(un)==='Incline DB Press 1'&&upNext(ua)===null);
   const R=(id,last)=>({...mk(id,today()),last});
   db={sessions:[mk('r0',D(1)),R('r1',Date.now()-5*6e4)]};
