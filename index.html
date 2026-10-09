@@ -367,6 +367,7 @@ function calHTML(y,m){
   <div class="days">${['M','T','W','T','F','S','S'].map(d=>`<i>${d}</i>`).join('')}${cells.join('')}</div></div>`;
 }
 function home(){
+  if(stale)return location.reload();
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
   const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwLine(),dl=deloadInfo();
   const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
@@ -519,7 +520,15 @@ importFile.onchange=async()=>{
     if(d.deload&&!(db.deload>=d.deload))db.deload=d.deload;
     save();home();hdr.textContent='Imported';}catch{hdr.textContent='Import failed'}
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+// Check for a new version on every return to the app. When one takes over, reload on the home
+// screen only: a reload lands on home and drops the rest timer, so an open session waits.
+let stale=false;
+const reloadOk=()=>stale&&back.hidden;
+if('serviceWorker'in navigator){
+  const sw=navigator.serviceWorker;
+  sw.register('sw.js').then(r=>document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{})})).catch(()=>{});
+  if(sw.controller)sw.addEventListener('controllerchange',()=>{stale=true;if(reloadOk())location.reload()});
+}
 
 // Self-check: open index.html#test. Renders PASS/FAIL lines plus a sample session, touches no saved data.
 function runTests(){
@@ -649,6 +658,11 @@ function runTests(){
   Object.values(ua.ex).flat().forEach(x=>x.rir=1);
   t('nothing next when all sets are done',afterSet(ua,'Face Pull').next===null);
   startRest(u,'Barbell Bench Press');
+  const bh=back.hidden;stale=true;back.hidden=false;
+  t('update waits while a session is open',!reloadOk());
+  back.hidden=true;
+  t('update reloads on the home screen',reloadOk());
+  stale=false;back.hidden=bh;
   out.push('viewport '+innerWidth+'px');
   const pre=document.createElement('pre');pre.id='t';pre.style.whiteSpace='pre-wrap';pre.textContent=out.join('\n');app.prepend(pre);
   db=real;

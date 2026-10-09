@@ -62,7 +62,8 @@ personal account. Read `CLAUDE.md` before changing anything.
   No colour anywhere; the add-weight badge is solid white, the below-range one outlined. Safari cannot
   bend light on a web page, so the glass is blur, tint and highlights.
 - Export sends a JSON backup to the iOS share sheet. Import merges a backup by session id.
-- Installs to the home screen, runs full screen, works offline after the first load.
+- Installs to the home screen, runs full screen, works offline after the first load, and
+  updates itself on the home screen after a push.
 
 ## Files
 
@@ -118,8 +119,9 @@ is why Vercel was chosen over GitHub Pages (free Pages needs a public repo).
 1. Edit `index.html` (or manifest/icons).
 2. Bump `V` in `sw.js` (`liftlog-v1` → `liftlog-v2`).
 3. Open `#test`, all lines PASS. Add a line in `runTests()` for any new logic.
-4. Commit, push. The phone picks up the new version on the second open after the push
-   (the first open serves the cached copy and fetches the new one in the background).
+4. Commit, push. The app checks for a new version every time it comes back on screen. When
+   one has downloaded it reloads itself, but only on the home screen; an open session keeps
+   the old copy until you go back home, so a reload never drops the session or the rest timer.
 
 ## Data model
 
