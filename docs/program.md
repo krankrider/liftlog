@@ -1,9 +1,10 @@
-# Program v4 — Max-Efficiency Hypertrophy, Upper/Lower, 4 days
+# Program v5 — Max-Efficiency Hypertrophy, Upper/Lower, 4 days
 
-Goal: hypertrophy and looks. Priorities: chest, side delts, traps and neck, and from v4 also
-lats for the V-taper. Built on Andy Galpin's principles: minimum effective dose, training close
-to failure, rep-range variety. The v3 PDF next to this file has the exercise guide with cues
-and search terms; the session tables below supersede its tables. v4 was agreed on 2026-10-01.
+Goal: hypertrophy and looks. Priorities: chest, side delts, traps, and from v4 also lats for
+the V-taper. Built on Andy Galpin's principles: minimum effective dose, training close to
+failure, rep-range variety. The v3 PDF next to this file has the exercise guide with cues
+and search terms; the session tables below supersede its tables. v4 was agreed on 2026-10-01,
+v5 on 2026-10-09.
 
 Week: Mon Upper A · Tue Lower A · Wed rest · Thu Upper B · Fri Lower B · Sat and Sun rest.
 Days can shift. Keep at least one rest day between the two upper sessions.
@@ -34,7 +35,6 @@ Days can shift. Keep at least one rest day between the two upper sessions.
 - **Order.** Weak points first while fresh. On Upper B, shrugs are already second.
 - **Supersets.** A1/A2 and B1/B2 pairs are done back to back, then rest 90 s (arms) or 2 min
   (compound pairs). Opposing muscles do not steal from each other.
-- **Neck.** 2.5–5 kg is plenty for weeks 1–4. Slow, RIR 2, never jerk. Progress reps first.
 
 ## Sessions
 
@@ -54,7 +54,7 @@ exercise; the pair rests after its second half.
 | Incline DB Curl | 3 × 10–15 | 0–1 | — | B1 |
 | Overhead Cable Triceps Ext. | 3 × 10–15 | 0–1 | 90 s | B2 |
 
-### Lower A (~45 min)
+### Lower A (~42 min)
 
 | Exercise | Sets × reps | RIR | Rest | Note |
 |---|---|---|---|---|
@@ -62,8 +62,7 @@ exercise; the pair rests after its second half.
 | Romanian Deadlift | 3 × 8–10 | 1–2 | 2 min | |
 | Leg Press / Walking Lunge | 3 × 10–12 | 1–2 | 2 min | |
 | Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
-| Neck Curl (flexion) | 3 × 15–20 | 2 | 90 s | A2 |
-| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | 45 s | alternate sides |
+| Cable Crunch | 3 × 10–15 | 0–1 | 90 s | A2 |
 
 ### Upper B (~51 min)
 
@@ -78,7 +77,7 @@ exercise; the pair rests after its second half.
 | EZ-Bar Curl | 3 × 8–12 | 1–2 | — | B1 |
 | Triceps Pushdown | 3 × 10–15 | 0–1 | 90 s | B2 |
 
-### Lower B (~46 min)
+### Lower B (~43 min)
 
 | Exercise | Sets × reps | RIR | Rest | Note |
 |---|---|---|---|---|
@@ -87,23 +86,34 @@ exercise; the pair rests after its second half.
 | Bulgarian Split Squat (per leg) | 3 × 8–12 | 1–2 | 2 min | |
 | Leg Curl | 3 × 10–12 | 1–2 | 90 s | |
 | Calf Raise | 3 × 12–15 | 0–1 | — | A1 |
-| Neck Extension | 3 × 15–20 | 2 | 90 s | A2 |
-| Lateral Neck Flexion (per side) | 2 × 15–20 | 2 | 45 s | |
+| Cable Crunch | 3 × 10–15 | 0–1 | 90 s | A2 |
 
-## Weekly direct sets, v3 → v4
+## Weekly direct sets, v3 → v4 → v5
 
-| Muscle | v3 | v4 |
-|---|---|---|
-| Chest | 9 | 10 |
-| Lats / upper back | 6 | 10 |
-| Side delts | 7 | 8 |
-| Traps | 7–8 | 7, now twice a week |
-| Neck | 18 | 14 |
-| Biceps (direct) | 6 | 6 |
-| Triceps (direct) | 6 | 6 |
-| Quads | 9 | 9 |
-| Hamstrings | 9 | 9 |
-| Calves | 6 | 6 |
+| Muscle | v3 | v4 | v5 |
+|---|---|---|---|
+| Chest | 9 | 10 | 10 |
+| Lats / upper back | 6 | 10 | 10 |
+| Side delts | 7 | 8 | 8 |
+| Traps | 7–8 | 7, now twice a week | 7 |
+| Neck | 18 | 14 | 0, parked |
+| Abs | 0 | 0 | 6 |
+| Biceps (direct) | 6 | 6 | 6 |
+| Triceps (direct) | 6 | 6 | 6 |
+| Quads | 9 | 9 | 9 |
+| Hamstrings | 9 | 9 | 9 |
+| Calves | 6 | 6 | 6 |
+
+## Changes from v4 and why
+
+1. **Neck parked.** The gym has no neck gear. Neck Curl, Neck Extension and Lateral Neck
+   Flexion are out. Logged neck sets stay in the saved data; bring the same names back and
+   their history picks up again. Each lower day is about 3 min shorter.
+2. **Abs added.** Squats and deadlifts load the abs but do little to grow them. Direct work
+   thickens them, so they show sooner when lean. Cable Crunch 3 × 10–15 at RIR 0–1 takes the
+   neck's A2 slot next to calves on both lower days: 6 sets a week, no extra time. It is
+   loaded in normal weight steps, so the add-weight rule works as on any other lift.
+3. **No heavy oblique work.** Thicker obliques widen the waist, against the V-taper.
 
 ## Changes from v3 and why
 

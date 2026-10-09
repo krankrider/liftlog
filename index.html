@@ -131,7 +131,7 @@ body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 <section id="rest" hidden><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script>
-// Program v4 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
+// Program v5 (sets, rep range, target RIR, rest in seconds, superset tag). Edit here when the program changes.
 // Rest per the v3 PDF: first heavy compound 3 min, other compounds 2 min, isolation 90 s.
 // A superset pair rests only after its second exercise; A1 goes straight into A2.
 function X(name,sets,lo,hi,rir,rest,ss){return{name,sets,lo,hi,rir,rest,ss}}
@@ -149,8 +149,7 @@ const PROGRAM={
  X("Romanian Deadlift",3,8,10,"1-2",120),
  X("Leg Press / Walking Lunge",3,10,12,"1-2",120),
  X("Calf Raise",3,12,15,"0-1",90,"A1"),
- X("Neck Curl (flexion)",3,15,20,"2",90,"A2"),
- X("Lateral Neck Flexion (per side)",2,15,20,"2",45)],
+ X("Cable Crunch",3,10,15,"0-1",90,"A2")],
 "Upper B":[
  X("Overhead Press",3,6,10,"1-2",180),
  X("Barbell Shrug",4,10,15,"0-1",120),
@@ -166,11 +165,10 @@ const PROGRAM={
  X("Bulgarian Split Squat (per leg)",3,8,12,"1-2",120),
  X("Leg Curl",3,10,12,"1-2",90),
  X("Calf Raise",3,12,15,"0-1",90,"A1"),
- X("Neck Extension",3,15,20,"2",90,"A2"),
- X("Lateral Neck Flexion (per side)",2,15,20,"2",45)]};
+ X("Cable Crunch",3,10,15,"0-1",90,"A2")]};
 
 // Cues shown during rest, one idea per line. From the v3 PDF's exercise guide; Lat Pulldown and the
-// trap-bar lifts are v4 additions with no PDF entry.
+// trap-bar lifts are v4 additions and Cable Crunch a v5 addition, none with a PDF entry.
 const TIPS={
 "Barbell Bench Press":["Feet planted, slight arch.","Shoulder blades pinched.","Lower over the chest in 2–3 s, press up."],
 "Incline DB Press":["Bench at 30–45°.","Press the dumbbells from shoulder level.","Aim for the upper chest."],
@@ -183,8 +181,7 @@ const TIPS={
 "Romanian Deadlift":["Bar at the hips, flat back, soft knees.","Push the hips back, lower to mid-shin.","The hamstring stretch is the point."],
 "Leg Press / Walking Lunge":["Leg press: feet shoulder-width, push the platform away.","Lunge: step forward holding dumbbells."],
 "Calf Raise":["Stand on an edge, rise onto your toes.","Pause at the top.","Lower below the edge for a full stretch."],
-"Neck Curl (flexion)":["Lie on your back, head off the bench.","Plate on the forehead on a towel, both hands on it.","Tuck chin to chest, lower slowly. Never jerk."],
-"Lateral Neck Flexion (per side)":["Lie on your side, head off the bench.","Plate on the side of your head.","Raise ear to shoulder, lower slowly.","Both sides."],
+"Cable Crunch":["Kneel facing a high cable, rope by your head.","Curl your chest towards your hips.","Round the back, hips stay still.","Pause at the bottom, let it up slowly."],
 "Overhead Press":["Bar at the collarbone.","Press straight up until the arms lock.","Squeeze the glutes, lower back neutral."],
 "Barbell Shrug":["Heavy bar at the hips.","Shrug straight up towards your ears.","Pause at the top, lower slowly. No rolling."],
 "Weighted Dip / Incline Press":["Dip: lower until upper arms are parallel to the floor.","Lean forward a little for chest.","Incline: bench at 30–45°, press from the shoulders."],
@@ -196,8 +193,7 @@ const TIPS={
 "Trap Bar Deadlift":["Stand in the middle of the bar.","Flat back, drive through the floor.","Stand up tall."],
 "Trap Bar Shrug":["Same bar, strip a plate if needed.","Shrug straight up towards your ears.","Pause at the top, lower slowly."],
 "Bulgarian Split Squat (per leg)":["Rear foot on a bench, dumbbells in hands.","Lower until the front thigh is parallel.","Push back up."],
-"Leg Curl":["Curl the pad towards your glutes with your heels.","Lower slowly."],
-"Neck Extension":["Lie face down, head off the bench.","Plate on the back of your head.","Lift your head up, lower slowly."]};
+"Leg Curl":["Curl the pad towards your glutes with your heels.","Lower slowly."]};
 
 const KEY='liftlog';
 let db=JSON.parse(localStorage.getItem(KEY)||'{"sessions":[]}'), cur=null, noSave=false;
@@ -558,8 +554,8 @@ function runTests(){
   t('deload: weeks count from the end of the last one',deloadInfo().week===1&&deloadInfo().after&&!deloadInfo().on);
   db={sessions:[{id:'a',date:D(3),name:'Upper A',ex:{'Barbell Bench Press':[S(8),S(8),S(8)]}}],deload:D(2)};
   t('deload: on for 7 days',deloadInfo().on&&deloadInfo().until===addDays(D(2),6));
-  const dA=newSession('Upper A'),dL=newSession('Lower A');
-  t('deload: 3 sets become 2, 4 become 2, 2 become 1',dA.deload&&dA.ex['Barbell Bench Press'].length===2&&dA.ex['Incline DB Press'].length===2&&dL.ex['Lateral Neck Flexion (per side)'].length===1);
+  const dA=newSession('Upper A');
+  t('deload: 3 sets become 2, 4 become 2, 2 become 1',dA.deload&&dA.ex['Barbell Bench Press'].length===2&&dA.ex['Incline DB Press'].length===2&&setsFor(dA,{sets:2})===1);
   dA.ex['Barbell Bench Press'].forEach(x=>{x.rir=1;x.r=5});
   t('deload keeps the weight after an up',dA.ex['Barbell Bench Press'][0].w===60);
   t('deload sessions do not feed badges or prefill',plan(PROGRAM['Upper A'][0]).prev.id==='a');
