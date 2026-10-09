@@ -258,6 +258,9 @@ function best(s,name,i){
   const old=db.sessions.filter(x=>x!==s&&key(x)<key(s)).flatMap(x=>(x.ex?.[name]||[]).filter(ok));
   return old.length>0&&![...old,...s.ex[name].slice(0,i).filter(ok)].some(x=>x.w>=st.w&&x.r>=st.r);
 }
+// Total weight lifted: weight x reps over every rated set. Warm-ups are only a line of text, never stored sets.
+const lifted=list=>Math.round(list.reduce((n,s)=>n+Object.values(s.ex||{}).flat().reduce((m,x)=>m+(done(x)&&x.w!=null&&x.r!=null?x.w*x.r:0),0),0));
+const kgText=n=>n.toLocaleString('en')+' kg';
 // Weeks run Monday to Sunday. A full week is all 4 sessions; deload weeks count when trained.
 const FULL=4;
 const trained=s=>Object.values(s.ex||{}).some(a=>a.some(done));
@@ -298,6 +301,7 @@ function summary(s){
   const lines=[],list=PROGRAM[s.name];
   const nb=list.reduce((n,e)=>n+(s.ex[e.name]||[]).filter((_,i)=>best(s,e.name,i)).length,0);
   if(nb)lines.push(nb===1?'1 new best':`${nb} new bests`);
+  lines.push(`Total lifted: ${kgText(lifted([s]))}`);
   if(!s.deload)for(const e of list){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')lines.push(`${e.name}: +2.5 kg next time`)}
   const wk=weeks()[weekOf(s.date)]?.length||0;
   lines.push(wk>=FULL?`Full week. ${streak()} in a row`:`This week: ${wk} of ${FULL}`);
@@ -370,7 +374,7 @@ function home(){
   cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
   const next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwLine(),dl=deloadInfo();
   const dlText=dl&&(dl.on?`Deload week until ${niceDate(dl.until)}`:dl.due?'Deload week due':`Week ${dl.week} since ${dl.after?'the last deload':'you started'}`);
-  const wk=weeks()[weekOf(today())]?.length||0,info=[bw,dlText,all.some(trained)&&`This week: ${wk} of ${FULL}`,all.some(trained)&&`Full weeks in a row: ${streak()}`].filter(x=>x);
+  const wk=weeks()[weekOf(today())]?.length||0,info=[bw,dlText,all.some(trained)&&`This week: ${wk} of ${FULL}`,all.some(trained)&&`All-time lifted: ${kgText(lifted(all))}`,all.some(trained)&&`Full weeks in a row: ${streak()}`].filter(x=>x);
   const tr=trophies();
   app.innerHTML=`<h1>Lift log</h1><button class="big tint" data-start="${next}">Start ${next}</button>
   <div class="grid">${names().filter(n=>n!==next).map(n=>`<button data-start="${n}">${n}</button>`).join('')}</div>
@@ -615,7 +619,9 @@ function runTests(){
   const sm={id:'s',date:today(),name:'Upper A',ex:{[BP]:[S(8,1,62.5),S(8,1,62.5),S(8,1,62.5)]}};
   db={sessions:[mk('p1','2026-01-01'),sm]};
   const sum=summary(sm);
-  t('summary: new bests, weight for next time, the week',sum.lines.join('|')==='1 new best|Barbell Bench Press: +2.5 kg next time|This week: 1 of 4');
+  t('summary: new bests, weight for next time, the week',sum.lines.join('|')==='1 new best|Total lifted: 1,500 kg|Barbell Bench Press: +2.5 kg next time|This week: 1 of 4');
+  t('lifted: weight x reps, rated sets only',lifted([{ex:{a:[S(5,1,100),{w:50,r:10,rir:null},{w:null,r:5,rir:1}],b:[S(8,0,62.5)]}}])===1000);
+  t('lifted: adds up across sessions and rounds',lifted([{ex:{a:[S(5,1,62.5)]}},{ex:{a:[S(3,1,100)]}}])===613&&kgText(128400)==='128,400 kg');
   t('summary: trophies earned by this session',sum.tr.map(x=>x.name).join()==='First weight jump earned');
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
