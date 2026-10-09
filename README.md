@@ -42,17 +42,36 @@ personal account. Read `CLAUDE.md` before changing anything.
   RIR label, so the row keeps its height. Never on the first time an exercise is logged, or
   every set would be one.
 - Done shows a summary of today's session: minutes, new bests, which exercises get heavier next
-  time and by how much, how the week stands, and any trophy this session earned. Earlier sessions and empty
+  time and by how much, how the week stands, and any trophy tier this session reached. Earlier sessions and empty
   ones go straight home.
 - Home tiles: this week's sessions out of 4, full weeks in a row (Monday to Sunday, all 4
   sessions; deload weeks count when trained; this week counts once it is full), bodyweight
   and total lifted.
-- Trophies on home, black-and-white medals, solid when earned with the date, outlined with
-  what is left when not. Home shows the earned ones and the 4 closest to earn; "Show all"
-  lists the rest. The trophies: 1/10/25/50/100 sessions; 4/12/26 full weeks in a row; 1/10/25
-  weight jumps earned (an exercise that hit the add-weight rule); plate clubs for 5+ reps
-  (bench 60/100, squat 100/140, trap bar 140/180, overhead press 60); a deload week taken
-  after at least 4 weeks of training. All worked out from history, nothing extra saved.
+- Trophies on home: 11 tracks of five tiers each, Bronze, Silver, Gold, Platinum and Diamond.
+  Each tier has its own medal shape (circle, shield, hexagon, rosette, diamond) and colour, the
+  only colour in the app. Before its first tier a medal is a grey outline. Under each medal: the
+  tier, what is left to the next one, and a bar that fills towards it in the next tier's colour;
+  at Diamond, the day it was reached. Home shows the tracks with a tier and the 4 closest to
+  their first; "Show all" lists the rest. The heading counts tiers reached, out of 55.
+
+  | Track | Bronze | Silver | Gold | Platinum | Diamond |
+  |---|---|---|---|---|---|
+  | Sessions | 10 | 25 | 50 | 100 | 200 |
+  | Full weeks in a row | 2 | 4 | 8 | 16 | 26 |
+  | Weight jumps earned | 5 | 10 | 25 | 50 | 100 |
+  | Deload weeks on time | 1 | 2 | 4 | 6 | 8 |
+  | Bench × 5 | 60 | 80 | 100 | 120 | 140 kg |
+  | Squat × 5 | 80 | 100 | 120 | 140 | 180 kg |
+  | Trap bar × 5 | 100 | 140 | 160 | 180 | 220 kg |
+  | Overhead press × 5 | 40 | 50 | 60 | 70 | 80 kg |
+  | Barbell shrug × 10 | 60 | 100 | 140 | 180 | 220 kg |
+  | Pull-up × 8 | bodyweight | +10 | +20 | +30 | +40 kg |
+  | Lateral raise (DB) × 15 | 6 | 8 | 10 | 12.5 | 15 kg |
+
+  A lift tier needs one rated set with at least that many reps at that weight or heavier. A
+  weight jump is an exercise that hit the add-weight rule. A deload week counts when taken
+  after at least 4 weeks of training. All worked out from history, nothing extra saved. The
+  numbers live in `trophies()` and the LIFTS table in `index.html`.
 - The first lift of each session shows its warm-up under the "last ..." line, worked out from
   set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg. The line keeps its space
   when empty, so set 1 never moves while you change its weight (a jump there also made iPhone
@@ -82,7 +101,8 @@ personal account. Read `CLAUDE.md` before changing anything.
   like iOS Mail). Inside a session, "Delete session" at the bottom does the same with two taps.
 - Black-and-white Liquid Glass look, following Apple's guidance: glass only on the floating
   controls (back button, Export, Start, Done, the chosen RIR), content on plain dark cards.
-  No colour anywhere; the add-weight badge is solid white, the below-range one outlined. Safari cannot
+  No colour except the trophy tiers (owner's call, 2026-10-10: as the only colour, they stand
+  out); the add-weight badge is solid white, the below-range one outlined. Safari cannot
   bend light on a web page, so the glass is blur, tint and highlights. Presses show at once
   (Safari on iPhone needs a touchstart listener for that), and the steppers and RIR chips
   carry VoiceOver labels.
@@ -177,6 +197,8 @@ Open the production URL in Safari, Share, Add to Home Screen. Open it from the i
 
 - Points, XP and levels: numbers that mean nothing. No trophy for total kilos lifted either,
   since that rewards junk volume. No daily streak: rest days are part of the program.
+  Levels per lift were offered again with the tiers (2026-10-10) and declined as too much.
+- Hidden trophies: once one is described, it is no longer hidden.
 - Sound or vibration when the rest timer ends (iOS web apps cannot vibrate).
 - Deload due when reps stall two weeks running. Only the 6-week count is built.
 - Editing the program inside the app. Edit the PROGRAM table in `index.html` instead.

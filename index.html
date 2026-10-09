@@ -13,8 +13,10 @@
 <title>Lift log</title>
 <style>
 /* Liquid Glass per Apple's HIG: glass only on the floating controls (header buttons, primary actions);
-   content sits on plain cards. Black and white only, so the white status bar text always reads. */
-:root{color-scheme:dark;--fg:#fff;--mut:rgba(255,255,255,.6);--dim:rgba(255,255,255,.3);--fill:rgba(255,255,255,.2);--fill2:rgba(255,255,255,.1);--card:rgba(24,24,24,.75);--line:rgba(255,255,255,.16)}
+   content sits on plain cards. Black and white only, so the white status bar text always reads. The one exception is
+   the trophy tiers (--t0 Bronze to --t4 Diamond): the only colour in the app, so they stand out. */
+:root{color-scheme:dark;--fg:#fff;--mut:rgba(255,255,255,.6);--dim:rgba(255,255,255,.3);--fill:rgba(255,255,255,.2);--fill2:rgba(255,255,255,.1);--card:rgba(24,24,24,.75);--line:rgba(255,255,255,.16);
+  --t0:#d98e54;--t1:#c3cad3;--t2:#f2c14e;--t3:#6fd6c4;--t4:#9fb8ff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html{background:#000}
@@ -121,15 +123,24 @@ textarea{display:block;width:100%;min-height:72px;border:0;background:none;resiz
 .day.on b{background:#fff;color:#000;font-weight:600}
 .day.now b{box-shadow:inset 0 0 0 1.5px #fff;color:var(--fg)}
 .day.on.now b{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff;color:#000}
-/* Trophies: earned ones are solid white medals with a ring, locked ones an outline. */
+/* Trophies: one medal per track, five tiers. A tier's medal has its own shape and colour (--c) with a ring; before
+   the first tier it is a grey outline. The bar fills towards the next tier in that tier's colour (--n). */
 h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
 .trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;padding:18px 10px}
 .tr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
-.tr b{display:grid;place-items:center;width:56px;height:56px;margin-bottom:8px;border-radius:50%;font-size:17px;font-weight:700;color:var(--dim);box-shadow:inset 0 0 0 1.5px var(--fill)}
-.tr.got b{background:#fff;color:#000;box-shadow:0 0 0 3px #000,0 0 0 4.5px #fff}
+.tr svg{width:64px;height:64px;margin-bottom:4px;overflow:visible}
+.tr path{vector-effect:non-scaling-stroke}
+.tr .lk{fill:none;stroke:var(--fill);stroke-width:1.5}
+.tr .rg{fill:none;stroke:var(--c);stroke-width:1.5}
+.tr .fl{fill:var(--c)}
+.tr text{font-size:17px;font-weight:700;fill:var(--dim)}
+.tr.got text{fill:#000}
 .tr span{font-size:13px;font-weight:600;line-height:1.25;color:var(--mut)}
 .tr.got span{color:var(--fg)}
 .tr small{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.tr .tw{color:var(--c);font-weight:700}
+.pb{display:block;width:56px;height:3px;margin-top:4px;border-radius:2px;background:var(--fill2);overflow:hidden}
+.pb i{display:block;height:100%;background:var(--n)}
 /* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). It slides up from the bottom and
    leaves the same way, no bounce. It eases to white when it is time to lift. */
 #rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000;
@@ -154,6 +165,7 @@ body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><linearGradient id="sheen" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></linearGradient></svg>
 <header><button id="homeBtn" class="glass" aria-label="Back" hidden><svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="hdr"></span><button id="export" class="glass">Export</button></header>
 <main id="app"></main>
 <section id="rest" aria-live="polite"><div class="rt"><b id="restClock"></b><button id="skip" class="glass">Skip</button></div><div class="bar"><i id="restBar"></i></div><p id="restNx"></p><ul id="restTips"></ul></section>
@@ -309,32 +321,53 @@ function streak(){
   while(full(w)){n++;w=addDays(w,-7)}
   return n;
 }
-// Trophies, worked out from history every time, so nothing extra is saved. got is the session that earned it,
-// p how close an unearned one is (0 to 1).
-const PLATES=[["Barbell Bench Press","Bench",60],["Barbell Bench Press","Bench",100],["Back Squat","Squat",100],["Back Squat","Squat",140],["Trap Bar Deadlift","Trap bar",140],["Trap Bar Deadlift","Trap bar",180],["Overhead Press","Overhead press",60]];
+// Trophies, worked out from history every time, so nothing extra is saved. Each is a track of five tiers. tier is
+// the highest reached (-1 for none) and got the session that reached it; left and p (0 to 1) say how close the next is.
+const TIERS=['Bronze','Silver','Gold','Platinum','Diamond'];
+// Lift tracks: exercise, label, reps, the five weights. Pull-up weights are added to bodyweight (plus).
+const LIFTS=[["Barbell Bench Press","Bench",5,[60,80,100,120,140]],["Back Squat","Squat",5,[80,100,120,140,180]],
+ ["Trap Bar Deadlift","Trap bar",5,[100,140,160,180,220]],["Overhead Press","Overhead press",5,[40,50,60,70,80]],
+ ["Barbell Shrug","Barbell shrug",10,[60,100,140,180,220]],["Weighted Pull-up","Pull-up",8,[0,10,20,30,40],true],
+ ["Lateral Raise (DB)","Lateral raise",15,[6,8,10,12.5,15]]];
 function trophies(){
-  const all=asc(),out=[],T=(icon,name,got,left,p)=>out.push({icon,name,got:got||null,left:got?'':left,p});
-  for(const n of[1,10,25,50,100])T(String(n),n===1?'First session':`${n} sessions`,all[n-1],`${n-all.length} to go`,all.length/n);
+  const all=asc(),out=[];
+  // at: the five targets. got(k): the session that first reached k. have: where you are now, towards the next.
+  const T=(at,got,have,icon,name,left)=>{
+    let i=-1;while(i<4&&got(at[i+1]))i++;
+    const k=at[Math.max(0,i)],lo=i<0?0:at[i],hi=at[i+1];
+    out.push({tier:i,got:i<0?null:got(k),icon:icon(k),name:name(k),left:i<4?left(hi):'',p:i<4?Math.min(.99,Math.max(0,(have-lo)/(hi-lo))):1});
+  };
+  T([10,25,50,100,200],k=>all[k-1],all.length,String,k=>`${k} sessions`,k=>`${k-all.length} to go`);
   const m=weeks(),run={};let r=0,last=null;
   for(const k of Object.keys(m).sort()){if(m[k].length<FULL)continue;r=last&&addDays(last,7)===k?r+1:1;last=k;run[r]??=m[k][FULL-1]}
   const st=streak();
-  for(const n of[4,12,26])T(n+'wk',`${n} full weeks in a row`,run[n],`${n-st} more`,st/n);
+  T([2,4,8,16,26],k=>run[k],st,k=>k+'wk',k=>`${k} full weeks in a row`,k=>`${k-st} more`);
   let j=0;const jump={};
   for(const s of all)if(!s.deload)for(const e of PROGRAM[s.name]||[]){const g=suggest(e,(s.ex[e.name]||[]).filter(done));if(g==='up'||g==='easy')jump[++j]=s}
-  for(const n of[1,10,25])T(n===1?'↑':n+'↑',n===1?'First weight jump earned':`${n} weight jumps earned`,jump[n],`${n-j} to go`,j/n);
-  for(const[ex,label,k]of PLATES){
-    const five=s=>(s.ex[ex]||[]).filter(x=>done(x)&&x.r>=5),b=Math.max(0,...all.flatMap(s=>five(s).map(x=>x.w||0)));
-    T(String(k),`${label} ${k}\u00a0kg\u00a0×\u00a05`,all.find(s=>five(s).some(x=>x.w>=k)),b?`${kg(k-b)} kg to go`:'',b/k);
-  }
-  let from=all[0]?.date,dl=null;
-  for(const s of all){if(!s.deload||daysBetween(from,s.date)<0)continue;if(daysBetween(from,s.date)>=28)dl??=s;from=addDays(s.date,7)}
+  T([5,10,25,50,100],k=>jump[k],j,k=>k+'↑',k=>`${k} weight jumps earned`,k=>`${k-j} to go`);
+  let from=all[0]?.date;const dl=[];
+  for(const s of all){if(!s.deload||daysBetween(from,s.date)<0)continue;if(daysBetween(from,s.date)>=28)dl.push(s);from=addDays(s.date,7)}
   const di=deloadInfo();
-  T('☾','Deload week on time',dl,'Take one in week 5 or 6',di?.on?1:Math.min(.99,(di?.week||0)/6));
+  T([1,2,4,6,8],k=>dl[k-1],dl.length+(di?.on?.99:Math.min(.99,(di?.week||0)/6)),k=>k===1?'☾':k+'☾',k=>k===1?'Deload week on time':`${k} deload weeks on time`,()=>'Take one in week 5 or 6');
+  for(const[ex,label,reps,at,plus]of LIFTS){
+    const sets=s=>(s.ex[ex]||[]).filter(x=>done(x)&&x.r>=reps),b=Math.max(...all.flatMap(s=>sets(s).map(x=>x.w??0)));
+    const load=k=>plus?(k?` +${k}\u00a0kg`:''):` ${k}\u00a0kg`;
+    T(at,k=>all.find(s=>sets(s).some(x=>(x.w??0)>=k)),b,k=>plus?(k?'+'+k:'BW'):String(k),k=>`${label}${load(k)}\u00a0×\u00a0${reps}`,k=>isFinite(b)?`${kg(k-b)} kg to go`:'');
+  }
   return out;
 }
-// Home shows the earned trophies, then the 4 closest to earn; "Show all" adds the rest, closest first.
+// Medal shapes, lowest tier first: circle, shield, hexagon, rosette, diamond. Drawn around 0,0 at about radius 1.
+const around=(n,f)=>'M'+Array.from({length:n},(_,k)=>{const a=2*Math.PI*k/n-Math.PI/2;return[f(k)*Math.cos(a),f(k)*Math.sin(a)].map(v=>+v.toFixed(3)).join(' ')}).join('L')+'Z';
+const SHAPES=['M0-1A1 1 0 0 1 0 1A1 1 0 0 1 0-1Z','M-.9-.94H.9V.06C.9 .6 .46 .9 0 1.08C-.46 .9-.9 .6-.9 .06Z',around(6,()=>1.08),around(24,k=>k%2?.9:1.06),'M0-1.14L1.04 0 0 1.14-1.04 0Z'];
+// A tier's medal: its shape filled in its colour, a light sheen, and a ring. Before the first tier, a grey outline.
+function medal(i,text){
+  const at=s=>`d="${SHAPES[Math.max(0,i)]}" transform="translate(32 32) scale(${s})"`;
+  return`<svg viewBox="0 0 64 64" aria-hidden="true">${i<0?`<path class="lk" ${at(27.25)}/>`:`<path class="rg" ${at(30.75)}/><path class="fl" ${at(27)}/><path fill="url(#sheen)" ${at(27)}/>`}<text x="32" y="32" text-anchor="middle" dominant-baseline="central">${esc(text)}</text></svg>`;
+}
+// Home shows the tracks with a tier, then the 4 closest to their first; "Show all" adds the rest, closest first.
 const trShown=(tr,all)=>{const got=tr.filter(t=>t.got),left=tr.filter(t=>!t.got).sort((a,b)=>b.p-a.p);return got.concat(all?left:left.slice(0,4))};
-const trHTML=t=>`<div class="tr${t.got?' got':''}"><b>${esc(t.icon)}</b><span>${esc(t.name)}</span><small>${t.got?niceDate(t.got.date):esc(t.left)}</small></div>`;
+// Under the medal: the tier, then what is left to the next with a bar; at Diamond, the day it was reached.
+const trHTML=t=>`<div class="tr${t.got?' got':''}" style="${t.got?`--c:var(--t${t.tier});`:''}--n:var(--t${t.tier+1})">${medal(t.tier,t.icon)}<span>${esc(t.name)}</span>${t.got?`<small class="tw">${TIERS[t.tier]}</small>`:''}<small>${t.tier===4?niceDate(t.got.date):esc(t.left)}</small>${t.tier<4?`<i class="pb"><i style="width:${Math.round(t.p*100)}%"></i></i>`:''}</div>`;
 // What Done shows: new bests, weight earned for next time, the week, trophies earned by this session.
 function summary(s){
   const lines=[],list=PROGRAM[s.name];
@@ -444,7 +477,7 @@ function home(){
   ${tiles.length?`<div class="tiles">${tiles.map(([n,l])=>`<div class="tile"><b>${n}</b><span>${esc(l)}</span></div>`).join('')}</div>`:''}
   ${dl?`<div class="card dl"><span>${dlText}</span>${dl.on?'':'<button class="pill" data-deload>Start deload</button>'}</div>`:''}
   <h2>Calendar</h2>${calHTML(calY,calM)}
-  <h2>Trophies <small>${tr.filter(t=>t.got).length} of ${tr.length}</small></h2><div class="group"><div class="trophies">${trList.map(trHTML).join('')}</div>${more.tr||trList.length<tr.length?`<button class="more" data-more="tr">${more.tr?'Show less':`Show all ${tr.length}`}</button>`:''}</div>
+  <h2>Trophies <small>${tr.reduce((n,t)=>n+t.tier+1,0)} of ${tr.length*TIERS.length}</small></h2><div class="group"><div class="trophies">${trList.map(trHTML).join('')}</div>${more.tr||trList.length<tr.length?`<button class="more" data-more="tr">${more.tr?'Show less':`Show all ${tr.length}`}</button>`:''}</div>
   <h2>History</h2>${all.length?`<div class="group">${hist.map(s=>`<div class="row"><button class="open" data-open="${s.id}"><span class="t"><b>${esc(s.name)}</b><small>${niceDate(s.date)}</small></span>${s.bw?`<span class="rx">${s.bw} kg</span>`:''}<span class="chev">›</span></button><button class="rm" data-rm="${s.id}">Delete</button></div>`).join('')}${all.length>HIST?`<button class="more" data-more="hist">${more.hist?'Show less':`Show all ${all.length}`}</button>`:''}</div>`:'<p class="note">Nothing logged yet.</p>'}
   <p class="note">Data lives on this phone only. Export now and then. <button class="link" id="imp">Import a backup</button></p>`;
   scrollTo(0,0);
@@ -724,19 +757,25 @@ function runTests(){
   db={sessions:[...wkS(addDays(W,-14),4,'a'),...wkS(addDays(W,-7),4,'b'),...wkS(W,2,'c')]};
   t('streak: this week does not count until it is full',streak()===2);
   const tr=trophies(),g=n=>tr.find(x=>x.name===n);
-  t('trophy: 10 sessions earned by the 10th',g('10 sessions').got?.id==='c1');
-  t('trophy: what is left',g('25 sessions').left==='15 to go'&&g('4 full weeks in a row').left==='2 more');
+  t('trophy: 10 sessions is Bronze, reached by the 10th',g('10 sessions').tier===0&&g('10 sessions').got?.id==='c1');
+  t('trophy: what is left to the next tier',g('10 sessions').left==='15 to go'&&g('2 full weeks in a row').left==='2 more');
   db.sessions.push(...wkS(addDays(W,2),2,'d'));
   t('streak: a full week counts straight away',streak()===3);
   db={sessions:[...wkS(addDays(W,-21),4,'a'),...wkS(addDays(W,-14),3,'b'),...wkS(addDays(W,-7),4,'c')]};
   t('streak: a short week breaks it',streak()===1);
   db={sessions:[mk('x1','2026-01-01',100,4),mk('x2','2026-01-03',60,5)]};
-  t('trophy: plate club needs 5 reps',!g2('Bench 100\u00a0kg\u00a0×\u00a05').got&&g2('Bench 100\u00a0kg\u00a0×\u00a05').left==='40 kg to go'&&g2('Bench 60\u00a0kg\u00a0×\u00a05').got?.id==='x2');
+  t('trophy: a lift tier needs its reps',(x=>x?.tier===0&&x.got.id==='x2'&&x.left==='20 kg to go')(g2('Bench 60\u00a0kg\u00a0×\u00a05')));
   function g2(n){return trophies().find(x=>x.name===n)}
   db={sessions:[mk('d0','2026-01-01'),{...mk('d1','2026-01-20'),deload:true},{...mk('d2','2026-02-25'),deload:true}]};
   t('trophy: deload only counts after 4 weeks of training',g2('Deload week on time').got?.id==='d2');
+  db={sessions:[mk('y1','2026-01-01',100,5),mk('y2','2026-01-08',140,5)]};
+  t('trophy: one session can climb several tiers, up to Diamond',(x=>x?.tier===4&&x.got.id==='y2'&&x.left===''&&x.p===1)(g2('Bench 140\u00a0kg\u00a0×\u00a05')));
+  db={sessions:[{id:'q1',date:'2026-01-01',name:'Upper A',ex:{'Weighted Pull-up':[S(8,1,0)]}}]};
+  t('trophy: pull-ups start at bodyweight',(x=>x?.tier===0&&x.icon==='BW'&&x.left==='10 kg to go')(g2('Pull-up\u00a0×\u00a08')));
   db={sessions:[mk('p1','2026-01-01',90,5)]};
-  t('trophies: earned first, then the 4 closest to earn',trShown(trophies()).map(x=>x.name).join('|')==='First session|Bench 60 kg × 5|Deload week on time|Bench 100 kg × 5|10 sessions|25 sessions'&&trShown(trophies(),true).length===19);
+  t('trophies: tracks with a tier first, then the 4 closest to their first',trShown(trophies()).map(x=>x.name).join('|')==='Bench 80\u00a0kg\u00a0×\u00a05|Deload week on time|10 sessions|2 full weeks in a row|5 weight jumps earned'&&trShown(trophies(),true).length===11);
+  db={sessions:[mk('g1','2026-01-01',100,5)]};home();
+  t('home: trophies count tiers, the medal shows its tier',app.querySelector('h2 small')?.textContent==='3 of 55'&&app.querySelector('.tr.got .tw')?.textContent==='Gold'&&app.querySelector('.tr.got .fl')?.getAttribute('d')===SHAPES[2]);
   db={sessions:Array.from({length:8},(_,i)=>mk('h'+i,addDays(today(),-2*i)))};home();
   t('home: tiles for the week, the run and the total',[...app.querySelectorAll('.tile span')].map(x=>x.textContent).join()==='This week,Full weeks in a row,Lifted, all time');
   t('home: history shows the last 6',app.querySelectorAll('.row').length===6&&app.querySelector('[data-more=hist]')?.textContent==='Show all 8');
@@ -745,12 +784,12 @@ function runTests(){
   more.hist=false;startRest(u,'Barbell Bench Press');document.getElementById('skip').click();
   t('Skip sends the rest card away',!rest.classList.contains('show'));
   const sm={id:'s',date:today(),name:'Upper A',ex:{[BP]:[S(8,1,62.5),S(8,1,62.5),S(8,1,62.5)]}};
-  db={sessions:[mk('p1','2026-01-01'),sm]};
+  db={sessions:[mk('p1','2026-01-01',50),sm]};
   const sum=summary(sm);
   t('summary: new bests, weight for next time, the week',sum.lines.join('|')==='1 new best|Total lifted: 1,500 kg|Barbell Bench Press: +2.5 kg next time|This week: 1 of 4');
   t('lifted: weight x reps, rated sets only',lifted([{ex:{a:[S(5,1,100),{w:50,r:10,rir:null},{w:null,r:5,rir:1}],b:[S(8,0,62.5)]}}])===1000);
   t('lifted: adds up across sessions and rounds',lifted([{ex:{a:[S(5,1,62.5)]}},{ex:{a:[S(3,1,100)]}}])===613&&kgText(128400)==='128,400 kg');
-  t('summary: trophies earned by this session',sum.tr.map(x=>x.name).join()==='First weight jump earned');
+  t('summary: trophy tiers reached by this session',sum.tr.map(x=>x.name+' '+TIERS[x.tier]).join()==='Bench 60\u00a0kg\u00a0×\u00a05 Bronze');
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
   db={sessions:[{id:'x',date:'2026-10-05',name:'Upper B'}]};
