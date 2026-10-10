@@ -123,18 +123,27 @@ textarea{display:block;width:100%;min-height:72px;border:0;background:none;resiz
 .day.on b{background:#fff;color:#000;font-weight:600}
 .day.now b{box-shadow:inset 0 0 0 1.5px #fff;color:var(--fg)}
 .day.on.now b{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff;color:#000}
-/* Trophies: one medal per track, five tiers. A tier's medal has its own shape and colour (--c) with a ring; before
-   the first tier it is a grey outline. The bar fills towards the next tier in that tier's colour (--n). */
+/* Trophies: one medal per track, five tiers. A reached tier's medal has its own shape and colour (--c) with a ring;
+   an unreached one is a grey outline. The bar fills towards the next tier in that tier's colour (--n). Tapping a
+   medal shades it and opens its ladder, all five tiers, under its row. */
 h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
 .trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;padding:18px 10px}
-.tr{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
-.tr svg{width:64px;height:64px;margin-bottom:4px;overflow:visible}
-.tr path{vector-effect:non-scaling-stroke}
-.tr .lk{fill:none;stroke:var(--fill);stroke-width:1.5}
-.tr .rg{fill:none;stroke:var(--c);stroke-width:1.5}
-.tr .fl{fill:var(--c)}
-.tr text{font-size:17px;font-weight:700;fill:var(--dim)}
-.tr.got text{fill:#000}
+.tr{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:none;text-align:center}
+.tr:active{transform:scale(.97)}
+.tr.on::before{content:"";position:absolute;inset:-8px -4px;z-index:-1;border-radius:20px;background:var(--fill2)}
+.md{overflow:visible}
+.tr .md{width:64px;height:64px;margin-bottom:4px}
+.md path{vector-effect:non-scaling-stroke}
+.md .lk{fill:none;stroke:var(--fill);stroke-width:1.5}
+.md .rg{fill:none;stroke:var(--c);stroke-width:1.5}
+.md .fl{fill:var(--c)}
+.md text{font-size:17px;font-weight:700;fill:var(--dim)}
+.got>.md text{fill:#000}
+.ladder{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,1fr);padding:12px 4px;border-radius:20px;background:var(--fill2)}
+.st{display:flex;flex-direction:column;align-items:center;gap:4px}
+.st .md{width:46px;height:46px}
+.st small{font-size:11px;font-weight:600;color:var(--dim)}
+.st.got small{color:var(--c)}
 .tr span{font-size:13px;font-weight:600;line-height:1.25;color:var(--mut)}
 .tr.got span{color:var(--fg)}
 .tr small{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
@@ -323,6 +332,7 @@ function streak(){
 }
 // Trophies, worked out from history every time, so nothing extra is saved. Each is a track of five tiers. tier is
 // the highest reached (-1 for none) and got the session that reached it; left and p (0 to 1) say how close the next is.
+// id is the track's place in the list, steps the five tiers' medal labels for its ladder.
 const TIERS=['Bronze','Silver','Gold','Platinum','Diamond'];
 // Lift tracks: exercise, label, reps, the five weights. Pull-up weights are added to bodyweight (plus).
 const LIFTS=[["Barbell Bench Press","Bench",5,[60,80,100,120,140]],["Back Squat","Squat",5,[80,100,120,140,180]],
@@ -335,7 +345,7 @@ function trophies(){
   const T=(at,got,have,icon,name,left)=>{
     let i=-1;while(i<4&&got(at[i+1]))i++;
     const k=at[Math.max(0,i)],lo=i<0?0:at[i],hi=at[i+1];
-    out.push({tier:i,got:i<0?null:got(k),icon:icon(k),name:name(k),left:i<4?left(hi):'',p:i<4?Math.min(.99,Math.max(0,(have-lo)/(hi-lo))):1});
+    out.push({id:out.length,steps:at.map(icon),tier:i,got:i<0?null:got(k),icon:icon(k),name:name(k),left:i<4?left(hi):'',p:i<4?Math.min(.99,Math.max(0,(have-lo)/(hi-lo))):1});
   };
   T([10,25,50,100,200],k=>all[k-1],all.length,String,k=>`${k} sessions`,k=>`${k-all.length} to go`);
   const m=weeks(),run={};let r=0,last=null;
@@ -359,15 +369,26 @@ function trophies(){
 // Medal shapes, lowest tier first: circle, shield, hexagon, rosette, diamond. Drawn around 0,0 at about radius 1.
 const around=(n,f)=>'M'+Array.from({length:n},(_,k)=>{const a=2*Math.PI*k/n-Math.PI/2;return[f(k)*Math.cos(a),f(k)*Math.sin(a)].map(v=>+v.toFixed(3)).join(' ')}).join('L')+'Z';
 const SHAPES=['M0-1A1 1 0 0 1 0 1A1 1 0 0 1 0-1Z','M-.9-.94H.9V.06C.9 .6 .46 .9 0 1.08C-.46 .9-.9 .6-.9 .06Z',around(6,()=>1.08),around(24,k=>k%2?.9:1.06),'M0-1.14L1.04 0 0 1.14-1.04 0Z'];
-// A tier's medal: its shape filled in its colour, a light sheen, and a ring. Before the first tier, a grey outline.
-function medal(i,text){
-  const at=s=>`d="${SHAPES[Math.max(0,i)]}" transform="translate(32 32) scale(${s})"`;
-  return`<svg viewBox="0 0 64 64" aria-hidden="true">${i<0?`<path class="lk" ${at(27.25)}/>`:`<path class="rg" ${at(30.75)}/><path class="fl" ${at(27)}/><path fill="url(#sheen)" ${at(27)}/>`}<text x="32" y="32" text-anchor="middle" dominant-baseline="central">${esc(text)}</text></svg>`;
+// Tier i's medal: reached, its shape filled in its colour, a light sheen, and a ring; not yet, a grey outline.
+function medal(i,text,got){
+  const at=s=>`d="${SHAPES[i]}" transform="translate(32 32) scale(${s})"`;
+  return`<svg class="md" viewBox="0 0 64 64" aria-hidden="true">${got?`<path class="rg" ${at(30.75)}/><path class="fl" ${at(27)}/><path fill="url(#sheen)" ${at(27)}/>`:`<path class="lk" ${at(27.25)}/>`}<text x="32" y="32" text-anchor="middle" dominant-baseline="central">${esc(text)}</text></svg>`;
+}
+// Tapping a medal opens its ladder under its row: the five tiers, coloured up to the one reached. Tapping it again
+// closes it; tapping another medal moves it there.
+function ladder(b){
+  const grid=b.parentNode,was=grid.querySelector('.tr.on');
+  grid.querySelector('.ladder')?.remove();was?.classList.remove('on');was?.setAttribute('aria-expanded','false');
+  if(was===b)return;
+  const t=trophies()[+b.dataset.tr],cells=[...grid.querySelectorAll('.tr')],end=cells[Math.min(cells.length-1,(cells.indexOf(b)/3|0)*3+2)];
+  b.classList.add('on');b.setAttribute('aria-expanded','true');
+  end.insertAdjacentHTML('afterend',`<div class="ladder">${t.steps.map((k,i)=>`<div class="st${i<=t.tier?' got':''}" style="--c:var(--t${i})">${medal(i,k,i<=t.tier)}<small>${TIERS[i]}</small></div>`).join('')}</div>`);
+  grid.querySelector('.ladder').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
 // Home shows the tracks with a tier, then the 4 closest to their first; "Show all" adds the rest, closest first.
 const trShown=(tr,all)=>{const got=tr.filter(t=>t.got),left=tr.filter(t=>!t.got).sort((a,b)=>b.p-a.p);return got.concat(all?left:left.slice(0,4))};
 // Under the medal: the tier, then what is left to the next with a bar; at Diamond, the day it was reached.
-const trHTML=t=>`<div class="tr${t.got?' got':''}" style="${t.got?`--c:var(--t${t.tier});`:''}--n:var(--t${t.tier+1})">${medal(t.tier,t.icon)}<span>${esc(t.name)}</span>${t.got?`<small class="tw">${TIERS[t.tier]}</small>`:''}<small>${t.tier===4?niceDate(t.got.date):esc(t.left)}</small>${t.tier<4?`<i class="pb"><i style="width:${Math.round(t.p*100)}%"></i></i>`:''}</div>`;
+const trHTML=t=>`<button class="tr${t.got?' got':''}" data-tr="${t.id}" aria-expanded="false" style="${t.got?`--c:var(--t${t.tier});`:''}--n:var(--t${t.tier+1})">${medal(Math.max(0,t.tier),t.icon,t.got)}<span>${esc(t.name)}</span>${t.got?`<small class="tw">${TIERS[t.tier]}</small>`:''}<small>${t.tier===4?niceDate(t.got.date):esc(t.left)}</small>${t.tier<4?`<i class="pb"><i style="width:${Math.round(t.p*100)}%"></i></i>`:''}</button>`;
 // What Done shows: new bests, weight earned for next time, the week, trophies earned by this session.
 function summary(s){
   const lines=[],list=PROGRAM[s.name];
@@ -580,6 +601,7 @@ app.addEventListener('click',ev=>{
   if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
   if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
   if(b.dataset.more){const y=scrollY;more[b.dataset.more]=!more[b.dataset.more];home();return scrollTo(0,y)}
+  if(b.dataset.tr)return ladder(b);
   if('deload'in b.dataset){
     if(!b.dataset.armed){b.dataset.armed=1;b.textContent='Tap again';return}
     db.deload=today();save();return home();
@@ -776,6 +798,13 @@ function runTests(){
   t('trophies: tracks with a tier first, then the 4 closest to their first',trShown(trophies()).map(x=>x.name).join('|')==='Bench 80\u00a0kg\u00a0×\u00a05|Deload week on time|10 sessions|2 full weeks in a row|5 weight jumps earned'&&trShown(trophies(),true).length===11);
   db={sessions:[mk('g1','2026-01-01',100,5)]};home();
   t('home: trophies count tiers, the medal shows its tier',app.querySelector('h2 small')?.textContent==='3 of 55'&&app.querySelector('.tr.got .tw')?.textContent==='Gold'&&app.querySelector('.tr.got .fl')?.getAttribute('d')===SHAPES[2]);
+  const mb=app.querySelector('.tr.got');mb.click();const ld=app.querySelector('.ladder'),stp=[...(ld?.querySelectorAll('.st')||[])];
+  t('ladder: a tap on a medal opens its five tiers under its row',stp.map(x=>x.querySelector('small').textContent).join()==='Bronze,Silver,Gold,Platinum,Diamond'&&ld.previousElementSibling===app.querySelectorAll('.trophies>.tr')[2]&&mb.classList.contains('on')&&mb.getAttribute('aria-expanded')==='true');
+  t('ladder: reached tiers in colour, the rest outlined in their own shape',stp.filter(x=>x.classList.contains('got')).length===3&&stp[4].querySelector('.lk')?.getAttribute('d')===SHAPES[4]&&stp[4].querySelector('text').textContent==='140');
+  app.querySelectorAll('.trophies>.tr')[3].click();
+  t('ladder: a tap on another medal moves it there',app.querySelectorAll('.ladder').length===1&&!mb.classList.contains('on')&&app.querySelector('.ladder').previousElementSibling===app.querySelectorAll('.trophies>.tr')[4]);
+  app.querySelectorAll('.trophies>.tr')[3].click();
+  t('ladder: a second tap closes it',!app.querySelector('.ladder')&&!app.querySelector('.tr.on'));
   db={sessions:Array.from({length:8},(_,i)=>mk('h'+i,addDays(today(),-2*i)))};home();
   t('home: tiles for the week, the run and the total',[...app.querySelectorAll('.tile span')].map(x=>x.textContent).join()==='This week,Full weeks in a row,Lifted, all time');
   t('home: history shows the last 6',app.querySelectorAll('.row').length===6&&app.querySelector('[data-more=hist]')?.textContent==='Show all 8');

@@ -52,7 +52,9 @@ personal account. Read `CLAUDE.md` before changing anything.
   only colour in the app. Before its first tier a medal is a grey outline. Under each medal: the
   tier, what is left to the next one, and a bar that fills towards it in the next tier's colour;
   at Diamond, the day it was reached. Home shows the tracks with a tier and the 4 closest to
-  their first; "Show all" lists the rest. The heading counts tiers reached, out of 55.
+  their first; "Show all" lists the rest. The heading counts tiers reached, out of 55. Tapping
+  a medal shades it and opens its ladder under its row: all five tiers with their numbers, in
+  colour up to the one reached, grey outlines after. Tap again to close; another medal moves it.
 
   | Track | Bronze | Silver | Gold | Platinum | Diamond |
   |---|---|---|---|---|---|
