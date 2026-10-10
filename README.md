@@ -42,19 +42,23 @@ personal account. Read `CLAUDE.md` before changing anything.
   RIR label, so the row keeps its height. Never on the first time an exercise is logged, or
   every set would be one.
 - Done shows a summary of today's session: minutes, new bests, which exercises get heavier next
-  time and by how much, how the week stands, and any trophy tier this session reached. Earlier sessions and empty
-  ones go straight home.
+  time and by how much, how the week stands, and any trophy tier this session reached. New trophies
+  rise in one after another, 60 ms apart (a fade with Reduce Motion on), the one celebration in the
+  app. Earlier sessions and empty ones go straight home.
 - Home tiles: this week's sessions out of 4, full weeks in a row (Monday to Sunday, all 4
   sessions; deload weeks count when trained; this week counts once it is full), bodyweight
-  and total lifted.
+  and total lifted. From a million the total reads "3.09M kg", so the tile stays on one line.
 - Trophies on home: 11 tracks of five tiers each, Bronze, Silver, Gold, Platinum and Diamond.
   Each tier has its own medal shape (circle, shield, hexagon, rosette, diamond) and colour, the
   only colour in the app. Before its first tier a medal is a grey outline. Under each medal: the
   tier, what is left to the next one, and a bar that fills towards it in the next tier's colour;
-  at Diamond, the day it was reached. Home shows the tracks with a tier and the 4 closest to
-  their first; "Show all" lists the rest. The heading counts tiers reached, out of 55. Tapping
-  a medal shades it and opens its ladder under its row: all five tiers with their numbers, in
-  colour up to the one reached, grey outlines after. Tap again to close; another medal moves it.
+  at Diamond, the day it was reached. A lift's weight sits on its own line under its name, and
+  every name keeps room for two lines, so the tiers in a row line up. Medal labels of four
+  characters ("26wk", "100↑") are a size smaller so they clear the diamond's edges. Home shows
+  the tracks with a tier and the 4 closest to their first; "Show all" lists the rest. The
+  heading counts tiers reached, out of 55. Tapping a medal shades it and opens its ladder under
+  its row, settling in over 0.2 s: all five tiers with their numbers, in colour up to the one
+  reached, grey outlines after. Tap again to close; another medal moves it.
 
   | Track | Bronze | Silver | Gold | Platinum | Diamond |
   |---|---|---|---|---|---|
@@ -77,7 +81,9 @@ personal account. Read `CLAUDE.md` before changing anything.
 - The first lift of each session shows its warm-up under the "last ..." line, worked out from
   set 1's weight: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg. The line keeps its space
   when empty, so set 1 never moves while you change its weight (a jump there also made iPhone
-  Safari redraw only part of the new number).
+  Safari redraw only part of the new number). On phones under 402 px wide (the iPhone 15 among them) a
+  heavy warm-up wraps, from about 145 kg, so there it keeps room for two lines. It wraps only
+  after a dot: a weight keeps its reps.
 - In a session the header shows the minutes since the first rated set (today only). It stops
   at the last rated set once nothing has been rated for 30 minutes.
 - Rating a set starts a rest timer at the bottom of the screen: first heavy compound 3 min,
@@ -86,8 +92,10 @@ personal account. Read `CLAUDE.md` before changing anything.
   to ..." instead of counting down. That only happens while A2 is behind A1, so logging A2 first
   still gives a normal rest. While it runs it shows the next exercise (with its superset tag) and
   set, with that exercise's cues from the PDF's exercise guide (the TIPS table). It slides up
-  from the bottom and leaves the same way (a fade with Reduce Motion on). At zero it eases to
-  white and says Go. Skip closes it. Re-rating a set does not restart it.
+  from the bottom in 0.45 s and leaves the same way in 0.25 s (a fade with Reduce Motion on). In
+  a session the page keeps room for it at the bottom the whole time, so nothing moves when it
+  leaves. At zero it eases to white and says Go. Skip closes it. Re-rating a set does not
+  restart it.
 - The set to log next has a white outline: right after a rating, the set the rest card names;
   on opening today's session, the set after the first exercise with an open set (so a superset
   resumes on the half that is behind). If it is off screen the page scrolls it into view between
@@ -100,14 +108,18 @@ personal account. Read `CLAUDE.md` before changing anything.
   new sessions get about 60% of the sets (3 → 2, 4 → 2, 2 → 1) at the same weights, the header
   says Deload, and those sessions are left out of the badges and prefill.
 - Delete a session by swiping its history row left and tapping Delete (no confirm, no undo,
-  like iOS Mail). Inside a session, "Delete session" at the bottom does the same with two taps.
+  like iOS Mail). The row folds away over 0.2 s so you see which one went (a fade with Reduce
+  Motion on). Inside a session, "Delete session" at the bottom does the same with two taps.
 - Black-and-white Liquid Glass look, following Apple's guidance: glass only on the floating
   controls (back button, Export, Start, Done, the chosen RIR), content on plain dark cards.
   No colour except the trophy tiers (owner's call, 2026-10-10: as the only colour, they stand
   out); the add-weight badge is solid white, the below-range one outlined. Safari cannot
-  bend light on a web page, so the glass is blur, tint and highlights. Presses show at once
-  (Safari on iPhone needs a touchstart listener for that), and the steppers and RIR chips
-  carry VoiceOver labels.
+  bend light on a web page, so the glass is blur, tint and highlights. Every button, the RIR
+  chips included, shows its press the moment a finger lands (Safari on iPhone needs a touchstart
+  listener for that). Like a native app, a long press selects no text: only what you type, the
+  expanded past sessions and the self-test can be selected. The steppers and RIR chips
+  carry VoiceOver labels. On phones under 390 px (iPhone mini, SE) the set row tightens so a
+  weight like 142.5 fits its box.
 - Export sends a JSON backup to the iOS share sheet. Import merges a backup by session id.
 - Installs to the home screen, runs full screen, works offline after the first load, and
   updates itself on the home screen after a push.

@@ -23,12 +23,18 @@ html{background:#000}
 body{margin:0;font:17px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--fg);padding-bottom:calc(env(safe-area-inset-bottom) + 32px)}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 45% at 10% 0%,rgba(255,255,255,.13),transparent 70%),radial-gradient(55% 40% at 100% 30%,rgba(255,255,255,.07),transparent 70%),radial-gradient(70% 45% at 30% 100%,rgba(255,255,255,.05),transparent 70%)}
 button,input,textarea{font:inherit;color:inherit;touch-action:manipulation}
+/* Like a native app, a long press selects no text: on iOS, unselectable buttons alone still let it pick up their label
+   or the text beside them. What you type, the expanded past sessions and the self-test stay selectable. */
+body{-webkit-user-select:none;user-select:none}
+input,textarea,.hist,#t{-webkit-user-select:text;user-select:text}
 /* The press shows at once; only the release eases back. */
-button{cursor:pointer;transition:transform .25s cubic-bezier(.2,.9,.3,1),background-color .25s}
-button:active{transition-duration:0s}
+button{cursor:pointer;transition:transform .25s cubic-bezier(.2,.9,.3,1),background-color .25s,opacity .25s;-webkit-touch-callout:none}
+button:active,[data-hist]:active{transition-duration:0s}
+[data-hist]{transition:opacity .25s}
+button.day:active,.mh button:active,.link:active,[data-hist]:active{opacity:.5}
 .glass{border-radius:999px;border:.5px solid rgba(255,255,255,.22);font-weight:600;background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 1px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.35)}
 .tint,.rir .on{border:0;border-radius:999px;font-weight:600;color:#000;background:linear-gradient(#fff,#d6d6d6);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 5px rgba(0,0,0,.15),0 6px 20px rgba(255,255,255,.12)}
-.glass:active,.tint:active,.grid button:active{transform:scale(.95)}
+.glass:active,.tint:active,.rir .on:active,.grid button:active,.del:active{transform:scale(.95)}
 header{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:calc(env(safe-area-inset-top) + 6px) 16px 16px;background:linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.35) 65%,transparent)}
 header::before{content:"";position:absolute;inset:0;z-index:-1;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
 header button{height:44px;min-width:44px;padding:0 18px;font-size:17px}
@@ -55,6 +61,7 @@ h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
 .open small{color:var(--mut);font-size:14px;font-variant-numeric:tabular-nums}
 .chev{color:var(--dim);font-size:26px;line-height:1}
 .rm{flex:none;scroll-snap-align:end;width:96px;border:0;background:#fff;color:#000;font-weight:600}
+.rm:active{background:#d6d6d6}
 .more{display:block;width:100%;min-height:50px;border:0;border-top:.5px solid var(--line);background:none;font-weight:600}
 .trophies+.more{border:0}
 .more:active{background:var(--fill2)}
@@ -75,6 +82,8 @@ h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
 .badge{display:table;margin-top:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px}
 .up{color:#000;background:#fff}.down{color:#fff;box-shadow:inset 0 0 0 1px var(--mut)}
 .wu:empty::before{content:"\00a0"}
+/* Under 402 px a heavy warm-up wraps, so there the line keeps room for two lines and set 1 never moves. */
+@media (max-width:401px){.wu{min-height:2.7em}}
 .hist{font-size:14px;color:var(--mut);margin:0 0 10px;padding:10px 12px;border-radius:16px;background:var(--fill2);white-space:pre-line;font-variant-numeric:tabular-nums}
 /* A done set's number fills white, like a trained day on the calendar. A new best adds the trophy ring and says
    Best where RIR was, so the row never grows and the sets below never move. */
@@ -99,6 +108,9 @@ h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:28px 4px 10px}
 .num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{display:none}
 .rir{grid-area:rir;display:flex;gap:2px;padding:3px;border-radius:22px;background:var(--fill2)}
 .rir button{flex:1;height:38px;border:0;border-radius:19px;background:none;font-size:15px;font-weight:600}
+.rir button:not(.on):active{background:var(--fill)}
+/* Narrow phones (iPhone mini, SE): a tighter set row, so a weight like 142.5 still fits its box. */
+@media (max-width:389px){.set{grid-template-columns:28px 1fr 1fr;column-gap:6px}.num button{width:42px}}
 .form{padding-block:4px}
 .fr{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px}
 .fr+.fr{border-top:.5px solid var(--line)}
@@ -125,7 +137,8 @@ textarea{display:block;width:100%;min-height:72px;border:0;background:none;resiz
 .day.on.now b{box-shadow:0 0 0 2px #000,0 0 0 3.5px #fff;color:#000}
 /* Trophies: one medal per track, five tiers. A reached tier's medal has its own shape and colour (--c) with a ring;
    an unreached one is a grey outline. The bar fills towards the next tier in that tier's colour (--n). Tapping a
-   medal shades it and opens its ladder, all five tiers, under its row. */
+   medal shades it and opens its ladder, all five tiers, under its row. A lift's weight sits on its own line, and every
+   name keeps room for two lines, so the tiers in a row line up. */
 h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
 .trophies{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;padding:18px 10px}
 .tr{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:none;text-align:center}
@@ -138,24 +151,32 @@ h2 small{font-size:15px;font-weight:400;color:var(--mut);margin-left:6px}
 .md .rg{fill:none;stroke:var(--c);stroke-width:1.5}
 .md .fl{fill:var(--c)}
 .md text{font-size:17px;font-weight:700;fill:var(--dim)}
+.md text.sm{font-size:14px}
 .got>.md text{fill:#000}
 .ladder{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,1fr);padding:12px 4px;border-radius:20px;background:var(--fill2)}
 .st{display:flex;flex-direction:column;align-items:center;gap:4px}
 .st .md{width:46px;height:46px}
 .st small{font-size:11px;font-weight:600;color:var(--dim)}
 .st.got small{color:var(--c)}
-.tr span{font-size:13px;font-weight:600;line-height:1.25;color:var(--mut)}
+.tr span{font-size:13px;font-weight:600;line-height:1.25;min-height:2.5em;white-space:pre-line;color:var(--mut)}
 .tr.got span{color:var(--fg)}
 .tr small{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
 .tr .tw{color:var(--c);font-weight:700}
 .pb{display:block;width:56px;height:3px;margin-top:4px;border-radius:2px;background:var(--fill2);overflow:hidden}
 .pb i{display:block;height:100%;background:var(--n)}
+/* Done: new trophies rise in one after another, the one celebration in the app. A ladder settles in under its row. */
+.card.trophies .tr{animation:rise .4s cubic-bezier(.2,.9,.3,1) backwards}
+.ladder{animation:settle .2s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes rise{from{opacity:0;transform:scale(.9)}}
+@keyframes settle{from{opacity:0;transform:translateY(-6px)}}
+@keyframes fade{from{opacity:0}}
 /* Rest timer: a plain card pinned to the bottom (it holds content, so no glass). It slides up from the bottom and
-   leaves the same way, no bounce. It eases to white when it is time to lift. */
+   leaves the same way, quicker, no bounce. It eases to white when it is time to lift. */
 #rest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:6;max-width:576px;margin:0 auto;padding:14px 16px 16px;border-radius:26px;background:#141414;border:.5px solid rgba(255,255,255,.2);box-shadow:0 10px 40px #000;
-  transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));visibility:hidden;transition:transform .45s cubic-bezier(.2,.9,.3,1),visibility 0s .45s,background-color .6s,color .6s}
+  transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));visibility:hidden;transition:transform .25s cubic-bezier(.2,.9,.3,1),visibility 0s .25s,background-color .6s,color .6s}
 #rest.show{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.2,.9,.3,1),visibility 0s,background-color .6s,color .6s}
-body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
+/* In a session the page keeps room under it for the rest card all along, so nothing moves when the card leaves. */
+body.logging{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 .rt{display:flex;align-items:center;justify-content:space-between}
 #restClock{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 #skip{height:44px;padding:0 18px}
@@ -169,8 +190,9 @@ body.resting{padding-bottom:calc(env(safe-area-inset-bottom) + 250px)}
 #rest.go #restNx small,#rest.go #restTips{color:rgba(0,0,0,.6)}
 #rest.go #skip,#rest.go .tag{background:#000;color:#fff;box-shadow:none}
 @media (prefers-reduced-transparency:reduce),(prefers-contrast:more){:root{--card:#181818;--mut:rgba(255,255,255,.8)}.glass{background:#2a2a2a;-webkit-backdrop-filter:none;backdrop-filter:none}header{background:#000}header::before,body::before{display:none}}
-/* Reduce Motion: the rest card fades instead of sliding. */
-@media (prefers-reduced-motion:reduce){#rest,#rest.show{transform:none;opacity:0;transition:opacity .2s,visibility 0s .2s,background-color .2s,color .2s}#rest.show{opacity:1;transition:opacity .2s,visibility 0s,background-color .2s,color .2s}}
+/* Reduce Motion: the rest card, new trophies and the ladder fade instead of moving. */
+@media (prefers-reduced-motion:reduce){#rest,#rest.show{transform:none;opacity:0;transition:opacity .2s,visibility 0s .2s,background-color .2s,color .2s}#rest.show{opacity:1;transition:opacity .2s,visibility 0s,background-color .2s,color .2s}
+  .card.trophies .tr,.ladder{animation-name:fade}}
 </style>
 </head>
 <body>
@@ -289,10 +311,11 @@ function bwInfo(){
   return{kg,note:d?`${d>0?'+':'−'}${Math.abs(d).toFixed(1)} on the week before`:'same as the week before'};
 }
 // Ramp-up from the program for the first lift: bar ×10, 50% ×5, 70% ×3, 85% ×1, rounded to 2.5 kg.
+// When it wraps, it wraps after a dot: a weight keeps its reps, and no line starts with a dot.
 function warmup(w){
   if(!(w>20))return'';
   const steps=[[.5,5],[.7,3],[.85,1]].map(([p,r])=>[Math.round(w*p/2.5)*2.5,r]).filter(([k],i,a)=>k>20&&k<w&&a.findIndex(x=>x[0]===k)===i);
-  return'Warm-up: '+['bar ×10',...steps.map(([k,r])=>`${k} ×${r}`)].join(' · ');
+  return'Warm-up: '+['bar\u00a0×10',...steps.map(([k,r])=>`${k}\u00a0×${r}`)].join('\u00a0· ');
 }
 // Minutes since the first rated set, today only. Stops at the last rated set once nothing has been rated for 30 min.
 function mins(s,now){
@@ -316,7 +339,8 @@ function best(s,name,i){
 }
 // Total weight lifted: weight x reps over every rated set. Warm-ups are only a line of text, never stored sets.
 const lifted=list=>Math.round(list.reduce((n,s)=>n+Object.values(s.ex||{}).flat().reduce((m,x)=>m+(done(x)&&x.w!=null&&x.r!=null?x.w*x.r:0),0),0));
-const kgText=n=>n.toLocaleString('en')+' kg';
+// From a million it reads "3.09M kg", so the home tile stays on one line.
+const kgText=n=>n>=1e6?(n/1e6).toFixed(2)+'M kg':n.toLocaleString('en')+' kg';
 // Weeks run Monday to Sunday. A full week is all 4 sessions; deload weeks count when trained.
 const FULL=4;
 const trained=s=>Object.values(s.ex||{}).some(a=>a.some(done));
@@ -361,7 +385,7 @@ function trophies(){
   T([1,2,4,6,8],k=>dl[k-1],dl.length+(di?.on?.99:Math.min(.99,(di?.week||0)/6)),k=>k===1?'☾':k+'☾',k=>k===1?'Deload week on time':`${k} deload weeks on time`,()=>'Take one in week 5 or 6');
   for(const[ex,label,reps,at,plus]of LIFTS){
     const sets=s=>(s.ex[ex]||[]).filter(x=>done(x)&&x.r>=reps),b=Math.max(...all.flatMap(s=>sets(s).map(x=>x.w??0)));
-    const load=k=>plus?(k?` +${k}\u00a0kg`:''):` ${k}\u00a0kg`;
+    const load=k=>plus?(k?`\n+${k}\u00a0kg`:''):`\n${k}\u00a0kg`;
     T(at,k=>all.find(s=>sets(s).some(x=>(x.w??0)>=k)),b,k=>plus?(k?'+'+k:'BW'):String(k),k=>`${label}${load(k)}\u00a0×\u00a0${reps}`,k=>isFinite(b)?`${kg(k-b)} kg to go`:'');
   }
   return out;
@@ -370,9 +394,10 @@ function trophies(){
 const around=(n,f)=>'M'+Array.from({length:n},(_,k)=>{const a=2*Math.PI*k/n-Math.PI/2;return[f(k)*Math.cos(a),f(k)*Math.sin(a)].map(v=>+v.toFixed(3)).join(' ')}).join('L')+'Z';
 const SHAPES=['M0-1A1 1 0 0 1 0 1A1 1 0 0 1 0-1Z','M-.9-.94H.9V.06C.9 .6 .46 .9 0 1.08C-.46 .9-.9 .6-.9 .06Z',around(6,()=>1.08),around(24,k=>k%2?.9:1.06),'M0-1.14L1.04 0 0 1.14-1.04 0Z'];
 // Tier i's medal: reached, its shape filled in its colour, a light sheen, and a ring; not yet, a grey outline.
+// Four characters ("26wk", "100↑") get smaller text, or they touch the diamond's edges.
 function medal(i,text,got){
   const at=s=>`d="${SHAPES[i]}" transform="translate(32 32) scale(${s})"`;
-  return`<svg class="md" viewBox="0 0 64 64" aria-hidden="true">${got?`<path class="rg" ${at(30.75)}/><path class="fl" ${at(27)}/><path fill="url(#sheen)" ${at(27)}/>`:`<path class="lk" ${at(27.25)}/>`}<text x="32" y="32" text-anchor="middle" dominant-baseline="central">${esc(text)}</text></svg>`;
+  return`<svg class="md" viewBox="0 0 64 64" aria-hidden="true">${got?`<path class="rg" ${at(30.75)}/><path class="fl" ${at(27)}/><path fill="url(#sheen)" ${at(27)}/>`:`<path class="lk" ${at(27.25)}/>`}<text x="32" y="32" text-anchor="middle" dominant-baseline="central"${String(text).length>3?' class="sm"':''}>${esc(text)}</text></svg>`;
 }
 // Tapping a medal opens its ladder under its row: the five tiers, coloured up to the one reached. Tapping it again
 // closes it; tapping another medal moves it there.
@@ -485,7 +510,7 @@ function calHTML(y,m){
 const more={tr:false,hist:false},HIST=6;
 function home(){
   if(stale)return location.reload();
-  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);
+  cur=null;hdr.textContent='';back.hidden=true;exp.hidden=false;stopRest();clearInterval(clock);document.body.classList.remove('logging');
   // A session left with nothing rated, no bodyweight and no note was a mistap or a look ahead: it goes.
   const n0=db.sessions.length;db.sessions=db.sessions.filter(s=>trained(s)||s.bw!=null||s.note);if(db.sessions.length<n0)save();
   const run=running(),next=nextName(),all=db.sessions.slice().sort(byDate),bw=bwInfo(),dl=deloadInfo(),any=all.some(trained);
@@ -508,10 +533,12 @@ function finish(s){
   if(s.date!==today()||!trained(s))return home();
   s.fin=true;save();
   const m=mins(s,Date.now()),{lines,tr}=summary(s);
-  cur=null;hdr.textContent='';back.hidden=false;exp.hidden=true;stopRest();clearInterval(clock);
+  cur=null;hdr.textContent='';back.hidden=false;exp.hidden=true;stopRest();clearInterval(clock);document.body.classList.remove('logging');
   app.innerHTML=`<h1>${esc(s.name)} done</h1><div class="card form">${(m!=null?[`${m} min`]:[]).concat(lines).map(l=>`<div class="fr">${esc(l)}</div>`).join('')}</div>
   ${tr.length?`<h2>${tr.length===1?'New trophy':'New trophies'}</h2><div class="card trophies">${tr.map(trHTML).join('')}</div>`:''}
   <div class="foot"><button class="big tint" data-home>Home</button></div>`;
+  // New trophies rise in 60 ms apart (CSS).
+  app.querySelectorAll('.card.trophies .tr').forEach((b,i)=>b.style.animationDelay=i*60+'ms');
   scrollTo(0,0);
 }
 // Header in a session: name, Deload, minutes so far.
@@ -522,7 +549,7 @@ function head(){
   hdr.textContent=[cur.name,cur.deload?'Deload':'',m!=null?`${m} min`:''].filter(x=>x).join(' · ');
 }
 function session(s){
-  cur=s;back.hidden=false;exp.hidden=true;stopRest();
+  cur=s;back.hidden=false;exp.hidden=true;stopRest();document.body.classList.add('logging');
   head();clearInterval(clock);clock=setInterval(head,15e3);
   app.innerHTML=PROGRAM[s.name].map(e=>exCard(s,e)).join('')
    +`<div class="card form"><label class="fr"><span>Date</span><input type="date" value="${s.date}" data-f="date"></label><label class="fr"><span>Bodyweight</span><input type="number" class="bw" inputmode="decimal" step="0.1" placeholder="kg" value="${s.bw??''}" data-f="bw"></label></div>
@@ -573,7 +600,7 @@ function startRest(s,name){
   restNx.innerHTML=straight?`Superset: straight to ${esc(next.name)}, ${set}`:`Next: ${esc(next.name)}${next.ss?` <span class="tag">${next.ss}</span>`:''}, ${set}`;
   restTips.innerHTML=(TIPS[next.name]||[]).map(t=>`<li>${esc(t)}</li>`).join('');
   restLen=sec*1000;restEnd=Date.now()+restLen;
-  rest.classList.add('show');document.body.classList.add('resting');
+  rest.classList.add('show');
   clearInterval(tick);tick=setInterval(drawRest,250);drawRest();
 }
 function drawRest(){
@@ -583,7 +610,7 @@ function drawRest(){
   rest.classList.toggle('go',!left);
   if(!left)clearInterval(tick);
 }
-function stopRest(){clearInterval(tick);rest.classList.remove('show');document.body.classList.remove('resting')}
+function stopRest(){clearInterval(tick);rest.classList.remove('show')}
 function toggleHist(h){
   const card=h.closest('.ex'),box=card.querySelector('.hist'),name=card.dataset.ex;
   if(!box.hidden){box.hidden=true;return}
@@ -599,7 +626,13 @@ app.addEventListener('click',ev=>{
   if(b.id==='imp')return importFile.click();
   if('home'in b.dataset)return home();
   if(b.dataset.cal){const d=new Date(calY,calM+ +b.dataset.cal,1);calY=d.getFullYear();calM=d.getMonth();app.querySelector('.cal').outerHTML=calHTML(calY,calM);return}
-  if(b.dataset.rm){const y=scrollY;drop(b.dataset.rm);home();return scrollTo(0,y)}
+  // Delete: the session goes at once, then its row folds away like Mail and home redraws, unless you have moved on.
+  if(b.dataset.rm){
+    const row=b.closest('.row'),y=scrollY,still=matchMedia('(prefers-reduced-motion: reduce)').matches;drop(b.dataset.rm);
+    row.animate(still?[{opacity:1},{opacity:0}]:[{height:row.offsetHeight+'px',opacity:1},{height:'0px',opacity:0}],{duration:200,easing:'cubic-bezier(.2,.9,.3,1)',fill:'forwards'})
+     .onfinish=()=>{if(row.isConnected){home();scrollTo(0,y)}};
+    return;
+  }
   if(b.dataset.more){const y=scrollY;more[b.dataset.more]=!more[b.dataset.more];home();return scrollTo(0,y)}
   if(b.dataset.tr)return ladder(b);
   if('deload'in b.dataset){
@@ -681,8 +714,8 @@ function runTests(){
   t('easy when every set was RIR 3 or more',suggest(e,[S(6,3),S(6,3),S(7,4)])==='easy');
   t('not easy when one set was RIR 2',suggest(e,[S(6,3),S(6,2),S(7,4)])===null);
   t('below range wins over easy',suggest(e,[S(6,3),S(4,4),S(6,3)])==='down');
-  t('warm-up from 60 kg',warmup(60)==='Warm-up: bar ×10 · 30 ×5 · 42.5 ×3 · 50 ×1');
-  t('warm-up skips steps at bar weight',warmup(30)==='Warm-up: bar ×10 · 25 ×1');
+  t('warm-up from 60 kg, each weight kept with its reps and its dot',warmup(60)==='Warm-up: bar\u00a0×10\u00a0· 30\u00a0×5\u00a0· 42.5\u00a0×3\u00a0· 50\u00a0×1');
+  t('warm-up skips steps at bar weight',warmup(30)==='Warm-up: bar\u00a0×10\u00a0· 25\u00a0×1');
   t('no warm-up without a weight',warmup(null)===''&&warmup(20)==='');
   const T=Date.now();
   t('clock counts from the first set',mins({date:today(),start:T-23*6e4,last:T-6e4},T)===23);
@@ -737,7 +770,9 @@ function runTests(){
   const lb=newSession('Lower B');lb.ex['Trap Bar Deadlift'][0].w=20;session(lb);
   const r1=app.querySelector('.set'),y1=r1.getBoundingClientRect().top+scrollY,wuEmpty=app.querySelector('.wu').textContent==='';
   r1.querySelector('[data-step="w:1"]').click();
-  t('set 1 stays put when the warm-up line fills in',wuEmpty&&app.querySelector('.wu').textContent==='Warm-up: bar ×10'&&r1.getBoundingClientRect().top+scrollY===y1);
+  t('set 1 stays put when the warm-up line fills in',wuEmpty&&app.querySelector('.wu').textContent==='Warm-up: bar\u00a0×10'&&r1.getBoundingClientRect().top+scrollY===y1);
+  const ys=new Set();for(let w=20;w<=300;w+=2.5){updWarmup(r1,{w});ys.add(r1.getBoundingClientRect().top+scrollY)}
+  t('set 1 stays put at any weight up to 300 kg, even when the warm-up wraps',ys.size===1&&ys.has(y1));
   t('renamed lifts keep their history',(()=>{const d=migrate({sessions:[{ex:{'Leg Press / Walking Lunge':[S(10)]}},{ex:{'Leg Press':[S(11)],'Leg Press / Walking Lunge':[S(9)]}}]});return d.sessions[0].ex['Leg Press']?.[0].r===10&&!('Leg Press / Walking Lunge'in d.sessions[0].ex)&&d.sessions[1].ex['Leg Press'][0].r===11})());
   const B=(id,date,w,r)=>({id,date,name:'Upper A',ex:{'Barbell Bench Press':[S(6,1,w),S(5,1,w),S(r,1,w)]}});
   db={sessions:[B('m1','2026-01-01',80,4)]};
@@ -757,6 +792,8 @@ function runTests(){
   row0.querySelector('[data-rir="1"]').click();
   t('new best mark shows when a heavier set is rated',row0.classList.contains('best')&&row0.querySelector('.lbl').textContent==='Best');
   t('rating a set keeps the row height',row0.offsetHeight===h0&&row0.classList.contains('done'));
+  const us=el=>getComputedStyle(el).userSelect||getComputedStyle(el).webkitUserSelect;
+  t('a long press selects no text but what you type',us(row0.querySelector('[data-rir]'))==='none'&&us(row0.querySelector('.lbl'))==='none'&&us(app.querySelector('.last'))==='none'&&us(row0.querySelector('input'))==='text'&&us(app.querySelector('textarea'))==='text');
   t('the chosen RIR is marked for VoiceOver',row0.querySelector('[data-rir="1"]').getAttribute('aria-pressed')==='true'&&row0.querySelector('[data-rir="0"]').getAttribute('aria-pressed')==='false');
   t('the rest card comes up after a set',rest.classList.contains('show'));
   const nx=()=>[...app.querySelectorAll('.set.nx')].map(r=>r.closest('.ex').dataset.ex+' '+r.dataset.i).join();
@@ -765,6 +802,8 @@ function runTests(){
   t('nothing moves when the next set is on screen',scrollY===0);
   markNext({name:'Overhead Cable Triceps Ext.',i:2});const nr=app.querySelector('.set.nx').getBoundingClientRect();
   t('the next set is brought into view above the rest card',scrollY>0&&nr.top>=document.querySelector('header').offsetHeight&&nr.bottom<=innerHeight-rest.offsetHeight&&nx()==='Overhead Cable Triceps Ext. 2');
+  scrollTo(0,document.documentElement.scrollHeight);const yb=scrollY;document.getElementById('skip').click();
+  t('Skip at the bottom of the page moves nothing',yb>0&&scrollY===yb);
   const BP='Barbell Bench Press',mk=(id,date,w=60,r=8)=>({id,date,name:'Upper A',ex:{[BP]:[S(r,1,w)]}});
   db={sessions:[mk('p1','2026-01-01')]};
   const cs={id:'c',date:'2026-01-05',name:'Upper A',ex:{[BP]:[S(9,1,60),S(9,1,60),S(8,1,62.5),S(9,1,55),{w:70,r:9,rir:null}]}};
@@ -786,21 +825,23 @@ function runTests(){
   db={sessions:[...wkS(addDays(W,-21),4,'a'),...wkS(addDays(W,-14),3,'b'),...wkS(addDays(W,-7),4,'c')]};
   t('streak: a short week breaks it',streak()===1);
   db={sessions:[mk('x1','2026-01-01',100,4),mk('x2','2026-01-03',60,5)]};
-  t('trophy: a lift tier needs its reps',(x=>x?.tier===0&&x.got.id==='x2'&&x.left==='20 kg to go')(g2('Bench 60\u00a0kg\u00a0×\u00a05')));
+  t('trophy: a lift tier needs its reps, the weight on its own line',(x=>x?.tier===0&&x.got.id==='x2'&&x.left==='20 kg to go')(g2('Bench\n60\u00a0kg\u00a0×\u00a05')));
   function g2(n){return trophies().find(x=>x.name===n)}
   db={sessions:[mk('d0','2026-01-01'),{...mk('d1','2026-01-20'),deload:true},{...mk('d2','2026-02-25'),deload:true}]};
   t('trophy: deload only counts after 4 weeks of training',g2('Deload week on time').got?.id==='d2');
   db={sessions:[mk('y1','2026-01-01',100,5),mk('y2','2026-01-08',140,5)]};
-  t('trophy: one session can climb several tiers, up to Diamond',(x=>x?.tier===4&&x.got.id==='y2'&&x.left===''&&x.p===1)(g2('Bench 140\u00a0kg\u00a0×\u00a05')));
+  t('trophy: one session can climb several tiers, up to Diamond',(x=>x?.tier===4&&x.got.id==='y2'&&x.left===''&&x.p===1)(g2('Bench\n140\u00a0kg\u00a0×\u00a05')));
   db={sessions:[{id:'q1',date:'2026-01-01',name:'Upper A',ex:{'Weighted Pull-up':[S(8,1,0)]}}]};
   t('trophy: pull-ups start at bodyweight',(x=>x?.tier===0&&x.icon==='BW'&&x.left==='10 kg to go')(g2('Pull-up\u00a0×\u00a08')));
   db={sessions:[mk('p1','2026-01-01',90,5)]};
-  t('trophies: tracks with a tier first, then the 4 closest to their first',trShown(trophies()).map(x=>x.name).join('|')==='Bench 80\u00a0kg\u00a0×\u00a05|Deload week on time|10 sessions|2 full weeks in a row|5 weight jumps earned'&&trShown(trophies(),true).length===11);
+  t('trophies: tracks with a tier first, then the 4 closest to their first',trShown(trophies()).map(x=>x.name).join('|')==='Bench\n80\u00a0kg\u00a0×\u00a05|Deload week on time|10 sessions|2 full weeks in a row|5 weight jumps earned'&&trShown(trophies(),true).length===11);
   db={sessions:[mk('g1','2026-01-01',100,5)]};home();
   t('home: trophies count tiers, the medal shows its tier',app.querySelector('h2 small')?.textContent==='3 of 55'&&app.querySelector('.tr.got .tw')?.textContent==='Gold'&&app.querySelector('.tr.got .fl')?.getAttribute('d')===SHAPES[2]);
   const mb=app.querySelector('.tr.got');mb.click();const ld=app.querySelector('.ladder'),stp=[...(ld?.querySelectorAll('.st')||[])];
   t('ladder: a tap on a medal opens its five tiers under its row',stp.map(x=>x.querySelector('small').textContent).join()==='Bronze,Silver,Gold,Platinum,Diamond'&&ld.previousElementSibling===app.querySelectorAll('.trophies>.tr')[2]&&mb.classList.contains('on')&&mb.getAttribute('aria-expanded')==='true');
   t('ladder: reached tiers in colour, the rest outlined in their own shape',stp.filter(x=>x.classList.contains('got')).length===3&&stp[4].querySelector('.lk')?.getAttribute('d')===SHAPES[4]&&stp[4].querySelector('text').textContent==='140');
+  t('ladder: settles in under its row',ld.getAnimations().length===1);
+  t('medals with four characters get smaller text',medal(4,'26wk',true).includes('class="sm"')&&!medal(4,'200',true).includes('class="sm"'));
   app.querySelectorAll('.trophies>.tr')[3].click();
   t('ladder: a tap on another medal moves it there',app.querySelectorAll('.ladder').length===1&&!mb.classList.contains('on')&&app.querySelector('.ladder').previousElementSibling===app.querySelectorAll('.trophies>.tr')[4]);
   app.querySelectorAll('.trophies>.tr')[3].click();
@@ -810,6 +851,9 @@ function runTests(){
   t('home: history shows the last 6',app.querySelectorAll('.row').length===6&&app.querySelector('[data-more=hist]')?.textContent==='Show all 8');
   app.querySelector('[data-more=hist]').click();
   t('home: Show all lists every session',app.querySelectorAll('.row').length===8);
+  const rr=app.querySelectorAll('.row')[1],rid=rr.querySelector('[data-rm]').dataset.rm;rr.querySelector('[data-rm]').click();
+  const fold=rr.getAnimations();fold.forEach(a=>a.cancel());
+  t('delete: the session goes at once and its row folds away',fold.length===1&&!db.sessions.some(s=>s.id===rid));
   more.hist=false;startRest(u,'Barbell Bench Press');document.getElementById('skip').click();
   t('Skip sends the rest card away',!rest.classList.contains('show'));
   const sm={id:'s',date:today(),name:'Upper A',ex:{[BP]:[S(8,1,62.5),S(8,1,62.5),S(8,1,62.5)]}};
@@ -818,7 +862,8 @@ function runTests(){
   t('summary: new bests, weight for next time, the week',sum.lines.join('|')==='1 new best|Total lifted: 1,500 kg|Barbell Bench Press: +2.5 kg next time|This week: 1 of 4');
   t('lifted: weight x reps, rated sets only',lifted([{ex:{a:[S(5,1,100),{w:50,r:10,rir:null},{w:null,r:5,rir:1}],b:[S(8,0,62.5)]}}])===1000);
   t('lifted: adds up across sessions and rounds',lifted([{ex:{a:[S(5,1,62.5)]}},{ex:{a:[S(3,1,100)]}}])===613&&kgText(128400)==='128,400 kg');
-  t('summary: trophy tiers reached by this session',sum.tr.map(x=>x.name+' '+TIERS[x.tier]).join()==='Bench 60\u00a0kg\u00a0×\u00a05 Bronze');
+  t('summary: trophy tiers reached by this session',sum.tr.map(x=>x.name+' '+TIERS[x.tier]).join()==='Bench\n60\u00a0kg\u00a0×\u00a05 Bronze');
+  t('lifted: from a million it reads 3.09M kg',kgText(3086835)==='3.09M kg'&&kgText(999999)==='999,999 kg');
   db={sessions:[{id:'a'},{id:'b'},{id:'c'}]};drop('b');
   t('delete removes only that session',db.sessions.map(s=>s.id).join()==='a,c');
   db={sessions:[{id:'x',date:'2026-10-05',name:'Upper B'}]};
@@ -863,6 +908,9 @@ function runTests(){
   t('home says Continue for it',big.textContent==='Continue Upper A'&&big.dataset.open==='r1'&&![...app.querySelectorAll('.grid button')].some(b=>b.textContent==='Upper A'));
   finish(db.sessions[1]);
   t('Done closes it',db.sessions[1].fin&&!running());
+  const ts={id:'t1',date:today(),name:'Upper A',ex:{[BP]:[S(5,1,80)],'Overhead Press':[S(5,1,50)]}};db={sessions:[ts]};finish(ts);
+  const nt=[...app.querySelectorAll('.card.trophies .tr')];
+  t('Done: new trophies rise in, 60 ms apart',nt.length===2&&nt.every(x=>x.getAnimations().length===1)&&nt[1].style.animationDelay==='60ms');
   db={sessions:[{id:'e1',date:today(),name:'Upper A',bw:null,note:'',ex:{[BP]:[{w:60,r:8,rir:null}]}},{id:'e2',date:D(1),name:'Lower A',bw:80,note:'',ex:{}},{id:'e3',date:D(2),name:'Upper B',bw:null,note:'sore',ex:{}},mk('e4',D(3))]};home();
   t('a session left with nothing in it is deleted',db.sessions.map(s=>s.id).join()==='e2,e3,e4'&&app.querySelector('.big').textContent==='Start Upper B');
   db=db0;session(u);startRest(u,'Barbell Bench Press');
